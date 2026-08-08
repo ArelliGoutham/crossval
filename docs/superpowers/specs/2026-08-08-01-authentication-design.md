@@ -91,6 +91,19 @@ The response sets one opaque session cookie with these attributes:
 
 The token is generated from cryptographically secure randomness. The browser sends it automatically; server-side code validates it through `requireMerchant` before any tenant-scoped operation.
 
+## UI and route protection
+
+Authentication owns two public pages:
+
+- `/login` provides email and password inputs, validation feedback, generic invalid-credentials feedback, and a link to `/sign-up`.
+- `/sign-up` provides email and password inputs, validation feedback, and a link to `/login`.
+
+Successful sign-up and login redirect to `/dashboard`. Authenticated users who request either public authentication page redirect to `/dashboard`.
+
+`/dashboard` and `/orders/:id` are protected page routes. A missing, expired, or revoked session redirects page requests to `/login`. Protected API routes return `401` JSON errors instead of redirects.
+
+If a post-login destination is supported, it must be validated as an internal application path before redirecting. Never redirect to a URL supplied by an untrusted client.
+
 ## Auditability
 
 Record successful sign-up, login, logout, and session revocation with timestamp, user ID when available, and merchant ID. Never audit raw passwords, password hashes, raw session tokens, or full credential payloads.
@@ -107,6 +120,8 @@ Before implementation, write failing tests for:
 6. Expired and revoked sessions cannot resolve a merchant identity.
 7. Logout revokes the session and clears the cookie.
 8. Protected callers receive only the authenticated `merchantId`, never a client-supplied tenant scope.
+9. Unauthenticated page requests to protected routes redirect to `/login`; equivalent API requests receive `401`.
+10. Successful sign-up and login redirect to `/dashboard`; authenticated users cannot remain on authentication pages.
 
 ## Deferred work
 
