@@ -23,8 +23,16 @@ const dateOnlySchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format.')
   .refine((value) => {
-    const parsed = new Date(value + 'T00:00:00.000Z');
-    return !Number.isNaN(parsed.getTime());
+    const parts = value.split('-');
+    const year = Number.parseInt(parts[0] ?? '', 10);
+    const month = Number.parseInt(parts[1] ?? '', 10);
+    const day = Number.parseInt(parts[2] ?? '', 10);
+    const constructed = new Date(Date.UTC(year, month - 1, day));
+    return (
+      constructed.getUTCFullYear() === year &&
+      constructed.getUTCMonth() === month - 1 &&
+      constructed.getUTCDate() === day
+    );
   }, 'Date must be a valid calendar date.');
 
 export const settlementInputSchema = z

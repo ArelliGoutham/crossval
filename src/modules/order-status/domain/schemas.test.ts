@@ -76,4 +76,37 @@ describe('settlementInputSchema', () => {
 
     expect(result.success).toBe(false);
   });
+
+  test('rejects February 30 (non-existent calendar date)', () => {
+    const result = settlementInputSchema.safeParse({
+      totalMinor: 100000,
+      amountPaidMinor: 0,
+      dueDate: '2026-02-30',
+      asOfUtcDate: '2026-08-08',
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test('rejects February 29 in a non-leap year', () => {
+    const result = settlementInputSchema.safeParse({
+      totalMinor: 100000,
+      amountPaidMinor: 0,
+      dueDate: '2026-02-29',
+      asOfUtcDate: '2026-08-08',
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  test('accepts February 29 in a leap year', () => {
+    const result = settlementInputSchema.safeParse({
+      totalMinor: 100000,
+      amountPaidMinor: 0,
+      dueDate: '2024-02-29',
+      asOfUtcDate: '2026-08-08',
+    });
+
+    expect(result.success).toBe(true);
+  });
 });
