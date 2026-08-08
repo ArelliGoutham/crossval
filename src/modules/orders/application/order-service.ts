@@ -93,7 +93,7 @@ export class OrderService {
       changedFields: [],
     });
 
-    return toOrderResult(stored);
+    return this.#toOrderResult(stored);
   }
 
   async listOrders(
@@ -103,7 +103,7 @@ export class OrderService {
     const validated = listOrdersQuerySchema.parse(query);
     const orders = await this.#orders.listActive(merchant.merchantId);
 
-    const summaries = orders.map((order) => toOrderSummary(order));
+    const summaries = orders.map((order) => this.#toOrderSummary(order));
 
     if (validated.status === undefined) {
       return summaries;
@@ -122,7 +122,7 @@ export class OrderService {
       throw NOT_FOUND_ERROR;
     }
 
-    return toOrderResult(order);
+    return this.#toOrderResult(order);
   }
 
   async updateOrder(
@@ -181,7 +181,7 @@ export class OrderService {
     });
 
     if (updated === null) {
-      throw NOT_FOUND_ERROR;
+      throw new OrderError('payment_locked');
     }
 
     await this.#audit.record({
@@ -193,7 +193,7 @@ export class OrderService {
       changedFields,
     });
 
-    return toOrderResult(updated);
+    return this.#toOrderResult(updated);
   }
 
   async deleteOrder(
@@ -218,7 +218,7 @@ export class OrderService {
     );
 
     if (deleted === null) {
-      throw NOT_FOUND_ERROR;
+      throw new OrderError('payment_locked');
     }
 
     await this.#audit.record({
@@ -230,50 +230,50 @@ export class OrderService {
       changedFields: [],
     });
   }
-}
 
-function toOrderResult(order: StoredOrder): OrderResult {
-  const settlement = evaluateSettlement({
-    totalMinor: order.totalMinor,
-    amountPaidMinor: order.amountPaidMinor,
-    dueDate: order.dueDate,
-    asOfUtcDate: toUtcDateString(new Date()),
-  });
+  #toOrderResult(order: StoredOrder): OrderResult {
+    const settlement = evaluateSettlement({
+      totalMinor: order.totalMinor,
+      amountPaidMinor: order.amountPaidMinor,
+      dueDate: order.dueDate,
+      asOfUtcDate: toUtcDateString(this.#clock.now()),
+    });
 
-  return {
-    id: order.id,
-    customer: order.customer,
-    dueDate: order.dueDate,
-    lineItems: order.lineItems,
-    subtotalMinor: order.subtotalMinor,
-    totalMinor: order.totalMinor,
-    amountPaidMinor: order.amountPaidMinor,
-    amountDueMinor: settlement.amountDueMinor,
-    status: settlement.status,
-    paymentCount: order.paymentCount,
-    createdAt: order.createdAt,
-    updatedAt: order.updatedAt,
-  };
-}
+    return {
+      id: order.id,
+      customer: order.customer,
+      dueDate: order.dueDate,
+      lineItems: order.lineItems,
+      subtotalMinor: order.subtotalMinor,
+      totalMinor: order.totalMinor,
+      amountPaidMinor: order.amountPaidMinor,
+      amountDueMinor: settlement.amountDueMinor,
+      status: settlement.status,
+      paymentCount: order.paymentCount,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    };
+  }
 
-function toOrderSummary(order: StoredOrder): OrderSummary {
-  const settlement = evaluateSettlement({
-    totalMinor: order.totalMinor,
-    amountPaidMinor: order.amountPaidMinor,
-    dueDate: order.dueDate,
-    asOfUtcDate: toUtcDateString(new Date()),
-  });
+  #toOrderSummary(order: StoredOrder): OrderSummary {
+    const settlement = evaluateSettlement({
+      totalMinor: order.totalMinor,
+      amountPaidMinor: order.amountPaidMinor,
+      dueDate: order.dueDate,
+      asOfUtcDate: toUtcDateString(this.#clock.now()),
+    });
 
-  return {
-    id: order.id,
-    customer: order.customer,
-    dueDate: order.dueDate,
-    totalMinor: order.totalMinor,
-    amountPaidMinor: order.amountPaidMinor,
-    amountDueMinor: settlement.amountDueMinor,
-    status: settlement.status,
-    paymentCount: order.paymentCount,
-  };
+    return {
+      id: order.id,
+      customer: order.customer,
+      dueDate: order.dueDate,
+      totalMinor: order.totalMinor,
+      amountPaidMinor: order.amountPaidMinor,
+      amountDueMinor: settlement.amountDueMinor,
+      status: settlement.status,
+      paymentCount: order.paymentCount,
+    };
+  }
 }
 
 function toUtcDateString(date: Date): string {

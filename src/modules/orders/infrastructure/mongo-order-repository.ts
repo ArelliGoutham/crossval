@@ -99,6 +99,7 @@ export class MongoOrderRepository implements OrderRepository {
         id: orderId,
         merchantId,
         deletedAt: null,
+        paymentCount: 0,
       },
       {
         $set: {
@@ -126,6 +127,7 @@ export class MongoOrderRepository implements OrderRepository {
         id: orderId,
         merchantId,
         deletedAt: null,
+        paymentCount: 0,
       },
       { $set: { deletedAt } },
       { returnDocument: 'after', session: this.#session },
