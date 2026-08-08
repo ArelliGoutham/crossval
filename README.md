@@ -17,6 +17,34 @@ The local MongoDB client uses a direct connection because Docker exposes one rep
 
 Stop the local database with `docker compose down`. Its named volume retains local data; use `docker compose down -v` only when intentionally discarding that data.
 
+## Local authentication workflow
+
+With MongoDB running and `npm run dev` serving the app on `http://localhost:3000`:
+
+1. Open `http://localhost:3000/sign-up`.
+2. Create a merchant account with a valid email and a password that is at least 12 characters long.
+3. Confirm the browser redirects to `/dashboard`.
+4. Use the `Log out` button in the protected app shell and confirm the browser redirects to `/login`.
+5. Confirm the authenticated identity endpoint now rejects the cleared session cookie:
+   `curl -i http://localhost:3000/api/v1/auth/me`
+
+You can also verify login by signing back in at `http://localhost:3000/login` with the same credentials and confirming the redirect back to `/dashboard`.
+
+Authentication cookies use one opaque `session` token with these attributes:
+
+- `HttpOnly`
+- `SameSite=Lax`
+- `Path=/`
+- explicit expiry aligned with `SESSION_TTL_DAYS`
+- `Secure` only when `NODE_ENV=production`
+
+The local auth API surface for this vertical slice is:
+
+- `POST /api/v1/auth/sign-up` — creates the merchant-owned account and session cookie
+- `POST /api/v1/auth/login` — authenticates existing credentials and refreshes the session cookie
+- `POST /api/v1/auth/logout` — revokes the active session and clears the cookie
+- `GET /api/v1/auth/me` — returns authenticated identity details or `401` when the session is absent, expired, or revoked
+
 ## Engineering documentation
 
 - [Agent instructions](AGENTS.md)

@@ -57,6 +57,17 @@ test('authenticated merchants are redirected from login and sign-up to dashboard
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 });
 
+test('logout clears access to protected pages and API identity', async ({
+  page,
+}) => {
+  await signUpThroughPage(page, uniqueEmail(), 'correcthorse1');
+
+  await page.getByRole('button', { name: 'Log out' }).click();
+
+  await expect(page).toHaveURL(/\/login/);
+  await expect((await page.request.get('/api/v1/auth/me')).status()).toBe(401);
+});
+
 async function signUpThroughPage(
   page: Page,
   email: string,
