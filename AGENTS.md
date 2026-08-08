@@ -8,7 +8,7 @@ No implementation work begins until the architecture and implementation plan are
 
 ## Start every task here
 
-Before changing code, read `CONTEXT.md`, relevant ADRs under `docs/adr/`, and the documents in `docs/agents/`. Preserve the vocabulary and decisions recorded there. Raise an ADR before changing a cross-module contract, persistence model, authentication boundary, money representation, or status rule.
+Before changing code, read `CONTEXT.md`, the relevant approved module design under `docs/superpowers/specs/`, relevant ADRs under `docs/adr/`, and the documents in `docs/agents/`. Preserve the vocabulary and decisions recorded there. Raise an ADR before changing a cross-module contract, persistence model, authentication boundary, money representation, or status rule.
 
 ## Architecture rules
 
