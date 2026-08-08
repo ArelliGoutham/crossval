@@ -91,4 +91,4 @@ Write failing tests before implementation for:
 
 ## Deferred work
 
-OpenAPI publication, rate limiting, API keys, third-party CORS clients, webhooks, ETags, and a v2 contract are out of scope.
+Rate limiting, API keys, third-party CORS clients, webhooks, ETags, and a v2 contract are out of scope. OpenAPI publication is specified by Module 08.

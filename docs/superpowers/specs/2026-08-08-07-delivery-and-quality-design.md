@@ -84,9 +84,10 @@ The final README must include:
 - Payment transaction, concurrency, idempotency, and audit approach.
 - Assumptions, trade-offs, production improvements, and deferred features.
 - Public deployed URL and the assignment sample verification flow.
+- API documentation URL and instructions to import the OpenAPI contract into Postman.
 
 The submission includes the repository URL, deployed URL, and optionally a short walkthrough video.
 
 ## Deferred work
 
-Infrastructure-as-code, observability service integration, alerting, load testing, secret rotation automation, database backup verification, and a formal release pipeline are production follow-ups.
+Infrastructure-as-code, observability service integration, alerting, load testing, secret rotation automation, database backup verification, and a formal release pipeline are production follow-ups. API reference documentation is specified by Module 08.
