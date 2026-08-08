@@ -28,6 +28,10 @@ export interface SessionTokenGenerator {
   generate(): Promise<string>;
 }
 
+export interface IdGenerator {
+  generate(): string;
+}
+
 export interface Clock {
   now(): Date;
 }

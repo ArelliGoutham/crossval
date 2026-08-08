@@ -1,7 +1,16 @@
-import type { Collection, Db, WithId } from 'mongodb';
+import {
+  MongoServerError,
+  type Collection,
+  type Db,
+  type WithId,
+} from 'mongodb';
 
+import { IdentityError } from '@/modules/identity/domain/errors';
 import type { UserRepository } from '@/modules/identity/domain/ports';
-import type { NewStoredUser, StoredUser } from '@/modules/identity/domain/types';
+import type {
+  NewStoredUser,
+  StoredUser,
+} from '@/modules/identity/domain/types';
 
 type UserDocument = {
   id: string;
@@ -26,14 +35,22 @@ export class MongoUserRepository implements UserRepository {
   }
 
   async insert(user: NewStoredUser): Promise<StoredUser> {
-    await this.#collection.insertOne({
-      id: user.id,
-      merchantId: user.merchantId,
-      email: user.email,
-      passwordHash: user.passwordHash,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    });
+    try {
+      await this.#collection.insertOne({
+        id: user.id,
+        merchantId: user.merchantId,
+        email: user.email,
+        passwordHash: user.passwordHash,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      });
+    } catch (error: unknown) {
+      if (error instanceof MongoServerError && error.code === 11000) {
+        throw new IdentityError('duplicate_email');
+      }
+
+      throw error;
+    }
 
     return {
       id: user.id,

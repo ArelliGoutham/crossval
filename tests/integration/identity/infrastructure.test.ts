@@ -1,6 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from 'vitest';
 import { type Db, MongoClient } from 'mongodb';
 
 import { BcryptPasswordHasher } from '@/modules/identity/infrastructure/bcrypt-password-hasher';
@@ -232,5 +239,31 @@ describe('identity infrastructure adapters', () => {
         }),
       ]),
     );
+  });
+
+  test('mongo user repository translates a duplicate email index violation', async () => {
+    await ensureIdentityIndexes(database);
+    const userRepository = new MongoUserRepository(database);
+    const createdAt = new Date('2026-08-08T10:00:00.000Z');
+
+    await userRepository.insert({
+      id: 'user-1',
+      merchantId: 'merchant-1',
+      email: 'merchant@example.com',
+      passwordHash: 'hash-1',
+      createdAt,
+      updatedAt: createdAt,
+    });
+
+    await expect(
+      userRepository.insert({
+        id: 'user-2',
+        merchantId: 'merchant-2',
+        email: 'merchant@example.com',
+        passwordHash: 'hash-2',
+        createdAt,
+        updatedAt: createdAt,
+      }),
+    ).rejects.toMatchObject({ code: 'duplicate_email' });
   });
 });

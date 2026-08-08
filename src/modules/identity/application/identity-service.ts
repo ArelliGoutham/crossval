@@ -1,9 +1,10 @@
-import { randomUUID, createHash } from 'node:crypto';
+import { createHash } from 'node:crypto';
 
 import { IdentityError } from '@/modules/identity/domain/errors';
 import type {
   AuditLog,
   Clock,
+  IdGenerator,
   PasswordHasher,
   SessionRepository,
   SessionTokenGenerator,
@@ -26,9 +27,6 @@ import type {
   SignUpUseCase,
 } from '@/modules/identity/domain/types';
 
-const SESSION_DURATION_IN_DAYS = 7;
-const SESSION_DURATION_IN_MILLISECONDS =
-  SESSION_DURATION_IN_DAYS * 24 * 60 * 60 * 1000;
 const INVALID_CREDENTIALS_ERROR = new IdentityError('invalid_credentials');
 const UNAUTHORIZED_ERROR = new IdentityError('unauthorized');
 
@@ -37,31 +35,33 @@ type IdentityServiceDependencies = {
   sessions: SessionRepository;
   hasher: PasswordHasher;
   tokens: SessionTokenGenerator;
+  ids: IdGenerator;
   clock: Clock;
   audit: AuditLog;
+  sessionTtlDays: number;
 };
 
 export class IdentityService
-  implements
-    SignUpUseCase,
-    LoginUseCase,
-    LogoutUseCase,
-    RequireMerchantUseCase
+  implements SignUpUseCase, LoginUseCase, LogoutUseCase, RequireMerchantUseCase
 {
   readonly #users: UserRepository;
   readonly #sessions: SessionRepository;
   readonly #hasher: PasswordHasher;
   readonly #tokens: SessionTokenGenerator;
+  readonly #ids: IdGenerator;
   readonly #clock: Clock;
   readonly #audit: AuditLog;
+  readonly #sessionTtlDays: number;
 
   constructor(dependencies: IdentityServiceDependencies) {
     this.#users = dependencies.users;
     this.#sessions = dependencies.sessions;
     this.#hasher = dependencies.hasher;
     this.#tokens = dependencies.tokens;
+    this.#ids = dependencies.ids;
     this.#clock = dependencies.clock;
     this.#audit = dependencies.audit;
+    this.#sessionTtlDays = dependencies.sessionTtlDays;
   }
 
   async signUp(input: SignUpInput): Promise<SignUpResult> {
@@ -76,8 +76,8 @@ export class IdentityService
 
     const now = this.#clock.now();
     const passwordHash = await this.#hasher.hash(credentials.password);
-    const userId = randomUUID();
-    const merchantId = randomUUID();
+    const userId = this.#ids.generate();
+    const merchantId = this.#ids.generate();
 
     const user = await this.#users.insert({
       id: userId,
@@ -150,13 +150,24 @@ export class IdentityService
   async logout(sessionToken: string): Promise<void> {
     const now = this.#clock.now();
     const tokenHash = hashToken(sessionToken);
+    const session = await this.#sessions.findActiveByTokenHash(tokenHash, now);
+
+    if (session === null) {
+      return;
+    }
 
     await this.#sessions.revokeByTokenHash(tokenHash, now);
     await this.#audit.record({
+      action: 'identity.session.revoked',
+      occurredAt: now,
+      userId: session.userId,
+      merchantId: session.merchantId,
+    });
+    await this.#audit.record({
       action: 'identity.logout.succeeded',
       occurredAt: now,
-      userId: null,
-      merchantId: null,
+      userId: session.userId,
+      merchantId: session.merchantId,
     });
   }
 
@@ -182,11 +193,11 @@ export class IdentityService
     const now = this.#clock.now();
     const token = await this.#tokens.generate();
     const expiresAt = new Date(
-      now.getTime() + SESSION_DURATION_IN_MILLISECONDS,
+      now.getTime() + this.#sessionTtlDays * 24 * 60 * 60 * 1000,
     );
 
     await this.#sessions.insert({
-      id: randomUUID(),
+      id: this.#ids.generate(),
       userId: identity.userId,
       merchantId: identity.merchantId,
       tokenHash: hashToken(token),

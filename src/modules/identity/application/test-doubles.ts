@@ -2,6 +2,7 @@ import type {
   AuditLog,
   Clock,
   IdentityAuditEvent,
+  IdGenerator,
   PasswordHasher,
   SessionRepository,
   SessionTokenGenerator,
@@ -119,5 +120,25 @@ export class StubSessionTokenGenerator implements SessionTokenGenerator {
 
     this.#index += 1;
     return token;
+  }
+}
+
+export class StubIdGenerator implements IdGenerator {
+  readonly #ids: string[];
+  #index = 0;
+
+  constructor(ids: string[]) {
+    this.#ids = ids;
+  }
+
+  generate(): string {
+    const id = this.#ids[this.#index];
+
+    if (id === undefined) {
+      throw new Error('No identifier available');
+    }
+
+    this.#index += 1;
+    return id;
   }
 }

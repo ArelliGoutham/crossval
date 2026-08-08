@@ -12,6 +12,7 @@ export {
 export type {
   AuditLog,
   Clock,
+  IdGenerator,
   PasswordHasher,
   SessionRepository,
   SessionTokenGenerator,

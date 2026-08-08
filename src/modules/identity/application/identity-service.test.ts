@@ -7,10 +7,11 @@ import {
   InMemoryAuditLog,
   InMemorySessionRepository,
   InMemoryUserRepository,
+  StubIdGenerator,
   StubSessionTokenGenerator,
 } from '@/modules/identity/application/test-doubles';
 
-function createService() {
+function createService(sessionTtlDays = 7) {
   const users = new InMemoryUserRepository();
   const sessions = new InMemorySessionRepository();
   const audit = new InMemoryAuditLog();
@@ -21,13 +22,21 @@ function createService() {
     'login-token',
     'logout-token',
   ]);
+  const ids = new StubIdGenerator([
+    'user-1',
+    'merchant-1',
+    'session-1',
+    'session-2',
+  ]);
   const service = new IdentityService({
     users,
     sessions,
     audit,
     hasher,
     tokens,
+    ids,
     clock,
+    sessionTtlDays,
   });
 
   return {
@@ -42,7 +51,7 @@ function createService() {
 
 describe('IdentityService', () => {
   test('sign-up creates a merchant-owned user, session, and safe audit event', async () => {
-    const { service, users, sessions, audit, hasher, clock } = createService();
+    const { service, users, sessions, audit, hasher, clock } = createService(2);
 
     const result = await service.signUp({
       email: ' Merchant@Example.com ',
@@ -50,12 +59,12 @@ describe('IdentityService', () => {
     });
 
     expect(result.identity).toEqual({
-      userId: expect.any(String),
-      merchantId: expect.any(String),
+      userId: 'user-1',
+      merchantId: 'merchant-1',
     });
     expect(result.session).toEqual({
       token: 'signup-token',
-      expiresAt: new Date('2026-08-15T10:00:00.000Z'),
+      expiresAt: new Date('2026-08-10T10:00:00.000Z'),
     });
     expect(result.identity.userId).not.toBe(result.identity.merchantId);
     expect(hasher.hashCalls).toEqual(['correcthorse1']);
@@ -72,7 +81,8 @@ describe('IdentityService', () => {
     expect(sessions.sessions[0]).toMatchObject({
       userId: result.identity.userId,
       merchantId: result.identity.merchantId,
-      expiresAt: new Date('2026-08-15T10:00:00.000Z'),
+      id: 'session-1',
+      expiresAt: new Date('2026-08-10T10:00:00.000Z'),
       createdAt: clock.now(),
       revokedAt: null,
     });
@@ -153,7 +163,7 @@ describe('IdentityService', () => {
     });
   });
 
-  test('logout revokes the hashed session token and remains idempotent', async () => {
+  test('logout revokes an active session and records its identity in both safe audit events', async () => {
     const { service, sessions, audit, clock } = createService();
 
     await service.signUp({
@@ -166,12 +176,24 @@ describe('IdentityService', () => {
     await service.logout('missing-token');
 
     expect(sessions.sessions[0]?.revokedAt).toEqual(clock.now());
-    expect(audit.events).toContainEqual({
-      action: 'identity.logout.succeeded',
-      occurredAt: clock.now(),
-      userId: null,
-      merchantId: null,
-    });
+    expect(audit.events).toEqual(
+      expect.arrayContaining([
+        {
+          action: 'identity.session.revoked',
+          occurredAt: clock.now(),
+          userId: 'user-1',
+          merchantId: 'merchant-1',
+        },
+        {
+          action: 'identity.logout.succeeded',
+          occurredAt: clock.now(),
+          userId: 'user-1',
+          merchantId: 'merchant-1',
+        },
+      ]),
+    );
+    expect(audit.events).toHaveLength(3);
+    expect(JSON.stringify(audit.events)).not.toContain('signup-token');
   });
 
   test('revoked and expired sessions cannot resolve a merchant', async () => {
@@ -183,9 +205,11 @@ describe('IdentityService', () => {
     });
     await service.logout('signup-token');
 
-    await expect(service.requireMerchant('signup-token')).rejects.toMatchObject({
-      code: 'unauthorized',
-    });
+    await expect(service.requireMerchant('signup-token')).rejects.toMatchObject(
+      {
+        code: 'unauthorized',
+      },
+    );
 
     const loggedIn = await service.login({
       email: 'merchant@example.com',
