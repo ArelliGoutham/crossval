@@ -1,7 +1,5 @@
 export type IdentityErrorCode =
-  | 'invalid_credentials'
-  | 'duplicate_email'
-  | 'unauthorized';
+  'invalid_credentials' | 'duplicate_email' | 'unauthorized';
 
 export class IdentityError extends Error {
   readonly code: IdentityErrorCode;

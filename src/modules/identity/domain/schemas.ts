@@ -1,6 +1,8 @@
 import { z } from 'zod';
 
-const normalizedEmailSchema = z.email().transform((email) => email.trim().toLowerCase());
+const normalizedEmailSchema = z
+  .email()
+  .transform((email) => email.trim().toLowerCase());
 const passwordSchema = z.string().min(12);
 
 const credentialsSchema = z.object({

@@ -4,17 +4,27 @@ import {
   loginInputSchema,
   signUpInputSchema,
 } from '@/modules/identity/domain/schemas';
+import type { StoredUser } from '@/modules/identity/domain/types';
+
+const storedUserWithoutUserId: StoredUser = {
+  id: 'user_123',
+  merchantId: 'merchant_123',
+  email: 'user@example.com',
+  passwordHash: 'password-hash',
+  createdAt: new Date('2026-08-08T00:00:00.000Z'),
+  updatedAt: new Date('2026-08-08T00:00:00.000Z'),
+};
 
 describe('identity credential schemas', () => {
   test('normalizes email and accepts a twelve-character password for sign-up', () => {
     expect(
       signUpInputSchema.parse({
         email: '  USER@Example.COM ',
-        password: 'correcthorse1',
+        password: 'correcthorse',
       }),
     ).toEqual({
       email: 'user@example.com',
-      password: 'correcthorse1',
+      password: 'correcthorse',
     });
   });
 
@@ -22,20 +32,24 @@ describe('identity credential schemas', () => {
     expect(
       loginInputSchema.parse({
         email: '  USER@Example.COM ',
-        password: 'correcthorse1',
+        password: 'correcthorse',
       }),
     ).toEqual({
       email: 'user@example.com',
-      password: 'correcthorse1',
+      password: 'correcthorse',
     });
   });
 
-  test('rejects passwords shorter than twelve characters', () => {
+  test('rejects an eleven-character password', () => {
     expect(
       signUpInputSchema.safeParse({
         email: 'user@example.com',
-        password: 'short',
+        password: 'correcthors',
       }).success,
     ).toBe(false);
+  });
+
+  test('allows stored users without a userId field', () => {
+    expect(storedUserWithoutUserId.id).toBe('user_123');
   });
 });

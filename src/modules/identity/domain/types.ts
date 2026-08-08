@@ -1,12 +1,16 @@
-import type { LoginInput, SignUpInput } from '@/modules/identity/domain/schemas';
+import type {
+  LoginInput,
+  SignUpInput,
+} from '@/modules/identity/domain/schemas';
 
 export interface AuthenticatedMerchant {
   userId: string;
   merchantId: string;
 }
 
-export interface StoredUser extends AuthenticatedMerchant {
+export interface StoredUser {
   id: string;
+  merchantId: string;
   email: string;
   passwordHash: string;
   createdAt: Date;

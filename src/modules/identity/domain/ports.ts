@@ -12,7 +12,10 @@ export interface UserRepository {
 
 export interface SessionRepository {
   insert(session: NewStoredSession): Promise<void>;
-  findActiveByTokenHash(tokenHash: string, now: Date): Promise<StoredSession | null>;
+  findActiveByTokenHash(
+    tokenHash: string,
+    now: Date,
+  ): Promise<StoredSession | null>;
   revokeByTokenHash(tokenHash: string, revokedAt: Date): Promise<void>;
 }
 
