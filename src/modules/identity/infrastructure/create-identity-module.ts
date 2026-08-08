@@ -25,14 +25,18 @@ async function createIdentityModuleInternal(): Promise<IdentityService> {
 
   await ensureIdentityIndexes(database);
 
+  const tokenGenerator = new CryptoSessionTokenGenerator();
+
   return new IdentityService({
     users: new MongoUserRepository(database),
     sessions: new MongoSessionRepository(database),
     hasher: new BcryptPasswordHasher(environment.bcryptCost),
-    tokens: new CryptoSessionTokenGenerator(),
+    tokens: tokenGenerator,
+    tokenHasher: tokenGenerator,
     ids: new CryptoIdGenerator(),
     clock: new SystemClock(),
     transactions: new MongoIdentityTransactionRunner(client, database),
     dummyPasswordHash: environment.bcryptDummyHash,
+    sessionTtlDays: environment.sessionTtlDays,
   });
 }

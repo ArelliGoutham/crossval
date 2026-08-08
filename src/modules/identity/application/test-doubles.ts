@@ -8,6 +8,7 @@ import type {
   PasswordHasher,
   SessionRepository,
   SessionTokenGenerator,
+  SessionTokenHasher,
   UserRepository,
 } from '@/modules/identity/domain/ports';
 import type {
@@ -188,6 +189,12 @@ export class StubSessionTokenGenerator implements SessionTokenGenerator {
 
     this.#index += 1;
     return token;
+  }
+}
+
+export class StubSessionTokenHasher implements SessionTokenHasher {
+  hash(token: string): string {
+    return `hashed:${token}`;
   }
 }
 

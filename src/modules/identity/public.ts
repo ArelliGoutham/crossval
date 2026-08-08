@@ -4,22 +4,10 @@ export {
   type LoginInput,
   type SignUpInput,
 } from '@/modules/identity/domain/schemas';
-export { IdentityService } from '@/modules/identity/application/identity-service';
 export {
   IdentityError,
   type IdentityErrorCode,
 } from '@/modules/identity/domain/errors';
-export type {
-  AuditLog,
-  Clock,
-  IdGenerator,
-  IdentityTransaction,
-  IdentityTransactionRunner,
-  PasswordHasher,
-  SessionRepository,
-  SessionTokenGenerator,
-  UserRepository,
-} from '@/modules/identity/domain/ports';
 export type {
   AuthenticatedMerchant,
   LoginResult,
@@ -30,3 +18,11 @@ export type {
   SignUpResult,
   SignUpUseCase,
 } from '@/modules/identity/domain/types';
+
+export async function composeIdentityService(): Promise<
+  import('@/modules/identity/application/identity-service').IdentityService
+> {
+  const { createIdentityModule } =
+    await import('@/modules/identity/infrastructure/create-identity-module');
+  return createIdentityModule();
+}

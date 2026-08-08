@@ -1,4 +1,4 @@
-import { composeRequireMerchant } from '@/app/composition/identity';
+import { composeIdentityService } from '@/modules/identity/public';
 import { IdentityError } from '@/modules/identity/public';
 import { SESSION_COOKIE_NAME } from '@/shared/http/request-context';
 import { cookies } from 'next/headers';
@@ -12,7 +12,7 @@ export async function redirectUnauthenticatedMerchant(): Promise<void> {
   }
 
   try {
-    const identity = await composeRequireMerchant();
+    const identity = await composeIdentityService();
 
     await identity.requireMerchant(sessionToken);
   } catch (error: unknown) {
@@ -32,7 +32,7 @@ export async function redirectAuthenticatedMerchant(): Promise<void> {
   }
 
   try {
-    const identity = await composeRequireMerchant();
+    const identity = await composeIdentityService();
 
     await identity.requireMerchant(sessionToken);
     redirect('/dashboard');

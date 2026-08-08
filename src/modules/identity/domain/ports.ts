@@ -31,6 +31,10 @@ export interface SessionTokenGenerator {
   generate(): Promise<string>;
 }
 
+export interface SessionTokenHasher {
+  hash(token: string): string;
+}
+
 export interface IdGenerator {
   generate(): string;
 }

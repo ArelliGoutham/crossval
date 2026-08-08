@@ -1,20 +1,13 @@
 import { type NextRequest, NextResponse } from 'next/server';
 
-import {
-  createIdentityModule,
-} from '@/modules/identity/infrastructure/create-identity-module';
+import { composeIdentityService } from '@/modules/identity/public';
 import { loginInputSchema } from '@/modules/identity/public';
-import {
-  dataResponse,
-  InvalidJsonError,
-  mapErrorResponse,
-} from '@/shared/http/api-response';
-import {
-  createRequestContext,
-  SESSION_COOKIE_NAME,
-} from '@/shared/http/request-context';
+import { dataResponse, InvalidJsonError } from '@/shared/http/api-response';
+import { mapApiErrorResponse } from '@/app/composition/api-errors';
+import { createRequestContext } from '@/shared/http/request-context';
 import { loadEnvironment } from '@/shared/config/environment';
 import { assertSameOrigin } from '@/shared/http/same-origin';
+import { serializeSessionCookie } from '@/shared/http/session-cookie';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const context = createRequestContext(request);
@@ -24,7 +17,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     assertSameOrigin(request, environment.appOrigin);
 
     const credentials = loginInputSchema.parse(await readJson(request));
-    const identityModule = await createIdentityModule();
+    const identityModule = await composeIdentityService();
     const result = await identityModule.login(credentials);
     const response = dataResponse(
       {
@@ -41,7 +34,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     return response;
   } catch (error: unknown) {
-    return mapErrorResponse(error, context.requestId);
+    return mapApiErrorResponse(error, context.requestId);
   }
 }
 
@@ -61,26 +54,8 @@ function setSessionCookie(
   const environment = loadEnvironment(process.env);
   response.headers.set(
     'set-cookie',
-    serializeSessionCookie(sessionToken, expiresAt, environment.isProduction),
+    serializeSessionCookie(sessionToken, expiresAt, {
+      isProduction: environment.isProduction,
+    }),
   );
-}
-
-function serializeSessionCookie(
-  sessionToken: string,
-  expiresAt: Date,
-  isProduction: boolean,
-): string {
-  const attributes = [
-    `${SESSION_COOKIE_NAME}=${sessionToken}`,
-    'Path=/',
-    `Expires=${expiresAt.toUTCString()}`,
-    'HttpOnly',
-    'SameSite=Lax',
-  ];
-
-  if (isProduction) {
-    attributes.push('Secure');
-  }
-
-  return attributes.join('; ');
 }

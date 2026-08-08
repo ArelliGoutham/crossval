@@ -11,6 +11,7 @@ import {
   InMemoryUserRepository,
   StubIdGenerator,
   StubSessionTokenGenerator,
+  StubSessionTokenHasher,
 } from '@/modules/identity/application/test-doubles';
 
 const DUMMY_PASSWORD_HASH = 'hashed:dummy-password';
@@ -38,9 +39,11 @@ function createService() {
     transactions: new InMemoryIdentityTransactionRunner(users, sessions, audit),
     hasher,
     tokens,
+    tokenHasher: new StubSessionTokenHasher(),
     ids,
     clock,
     dummyPasswordHash: DUMMY_PASSWORD_HASH,
+    sessionTtlDays: 7,
   });
 
   return {
@@ -258,9 +261,11 @@ describe('IdentityService', () => {
       ),
       hasher: new FakePasswordHasher(),
       tokens: new StubSessionTokenGenerator(['signup-token']),
+      tokenHasher: new StubSessionTokenHasher(),
       ids: new StubIdGenerator(['user-1', 'merchant-1', 'session-1']),
       clock: new FixedClock(new Date('2026-08-08T10:00:00.000Z')),
       dummyPasswordHash: DUMMY_PASSWORD_HASH,
+      sessionTtlDays: 7,
     });
 
     await expect(
@@ -296,9 +301,11 @@ describe('IdentityService', () => {
       ),
       hasher,
       tokens: new StubSessionTokenGenerator(['login-token']),
+      tokenHasher: new StubSessionTokenHasher(),
       ids: new StubIdGenerator(['session-2']),
       clock,
       dummyPasswordHash: DUMMY_PASSWORD_HASH,
+      sessionTtlDays: 7,
     });
 
     await expect(
@@ -333,9 +340,11 @@ describe('IdentityService', () => {
       ),
       hasher,
       tokens: new StubSessionTokenGenerator([]),
+      tokenHasher: new StubSessionTokenHasher(),
       ids: new StubIdGenerator([]),
       clock,
       dummyPasswordHash: DUMMY_PASSWORD_HASH,
+      sessionTtlDays: 7,
     });
 
     await expect(failingService.logout('signup-token')).rejects.toThrow(

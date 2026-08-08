@@ -1,5 +1,3 @@
-import { createHash } from 'node:crypto';
-
 import { IdentityError } from '@/modules/identity/domain/errors';
 import type {
   Clock,
@@ -8,6 +6,7 @@ import type {
   PasswordHasher,
   SessionRepository,
   SessionTokenGenerator,
+  SessionTokenHasher,
   UserRepository,
 } from '@/modules/identity/domain/ports';
 import {
@@ -36,13 +35,13 @@ type IdentityServiceDependencies = {
   sessions: SessionRepository;
   hasher: PasswordHasher;
   tokens: SessionTokenGenerator;
+  tokenHasher: SessionTokenHasher;
   ids: IdGenerator;
   clock: Clock;
   transactions: IdentityTransactionRunner;
   dummyPasswordHash: string;
+  sessionTtlDays: number;
 };
-
-const SESSION_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
 export class IdentityService
   implements SignUpUseCase, LoginUseCase, LogoutUseCase, RequireMerchantUseCase
@@ -51,20 +50,24 @@ export class IdentityService
   readonly #sessions: SessionRepository;
   readonly #hasher: PasswordHasher;
   readonly #tokens: SessionTokenGenerator;
+  readonly #tokenHasher: SessionTokenHasher;
   readonly #ids: IdGenerator;
   readonly #clock: Clock;
   readonly #transactions: IdentityTransactionRunner;
   readonly #dummyPasswordHash: string;
+  readonly #sessionLifetimeMs: number;
 
   constructor(dependencies: IdentityServiceDependencies) {
     this.#users = dependencies.users;
     this.#sessions = dependencies.sessions;
     this.#hasher = dependencies.hasher;
     this.#tokens = dependencies.tokens;
+    this.#tokenHasher = dependencies.tokenHasher;
     this.#ids = dependencies.ids;
     this.#clock = dependencies.clock;
     this.#transactions = dependencies.transactions;
     this.#dummyPasswordHash = dependencies.dummyPasswordHash;
+    this.#sessionLifetimeMs = dependencies.sessionTtlDays * 24 * 60 * 60 * 1000;
   }
 
   async signUp(input: SignUpInput): Promise<SignUpResult> {
@@ -161,7 +164,7 @@ export class IdentityService
 
   async logout(sessionToken: string): Promise<void> {
     const now = this.#clock.now();
-    const tokenHash = hashToken(sessionToken);
+    const tokenHash = this.#tokenHasher.hash(sessionToken);
     await this.#transactions.run(async (identity) => {
       const session = await identity.revokeActiveByTokenHash(tokenHash, now);
 
@@ -186,7 +189,7 @@ export class IdentityService
 
   async requireMerchant(sessionToken: string): Promise<AuthenticatedMerchant> {
     const session = await this.#sessions.findActiveByTokenHash(
-      hashToken(sessionToken),
+      this.#tokenHasher.hash(sessionToken),
       this.#clock.now(),
     );
 
@@ -205,13 +208,13 @@ export class IdentityService
     now: Date,
   ): Promise<{ record: SessionRecord; storedSession: NewStoredSession }> {
     const token = await this.#tokens.generate();
-    const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_MS);
+    const expiresAt = new Date(now.getTime() + this.#sessionLifetimeMs);
 
     const storedSession = {
       id: this.#ids.generate(),
       userId: identity.userId,
       merchantId: identity.merchantId,
-      tokenHash: hashToken(token),
+      tokenHash: this.#tokenHasher.hash(token),
       expiresAt,
       createdAt: now,
     };
@@ -224,8 +227,4 @@ export class IdentityService
       storedSession,
     };
   }
-}
-
-function hashToken(token: string): string {
-  return createHash('sha256').update(token).digest('hex');
 }
