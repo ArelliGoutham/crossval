@@ -1,1 +1,10 @@
 .worktrees/
+node_modules/
+.next/
+.env.local
+.env.test.local
+playwright-report/
+test-results/
+blob-report/
+playwright/.cache/
+*.tsbuildinfo

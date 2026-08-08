@@ -1,0 +1,12 @@
+services:
+  mongo:
+    image: mongo:7
+    command: ['mongod', '--replSet', 'rs0', '--bind_ip_all']
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongo-data:/data/db
+      - ./docker/mongo-init.sh:/docker-entrypoint-initdb.d/mongo-init.sh:ro
+
+volumes:
+  mongo-data:

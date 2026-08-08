@@ -2,9 +2,18 @@
 
 This repository contains the CrossVal Orders and Settlements take-home assignment.
 
-## Current status
+## Local setup
 
-Repository foundation only. Architecture, domain decisions, and implementation plan are being reviewed before application code is added.
+Prerequisites: Node.js 20.9 or later, npm, and Docker Compose.
+
+1. Copy the local configuration template: `cp .env.example .env.local`.
+2. Start the transaction-capable local MongoDB instance: `docker compose up -d`. MongoDB listens on host port `27018` and container port `27017` because host port `27017` may already be in use.
+3. Confirm the replica set is ready: `docker compose exec mongo mongosh --quiet --eval 'rs.status().set'`. It must print `rs0` before running code that uses MongoDB transactions.
+4. Install dependencies with `npm install`, then start the application with `npm run dev`.
+
+`.env.local` supplies the application database connection, database name, canonical origin, session lifetime, and bcrypt cost. The provided local URI selects the Docker replica set; keep `BCRYPT_COST` at 12 or higher.
+
+Stop the local database with `docker compose down`. Its named volume retains local data; use `docker compose down -v` only when intentionally discarding that data.
 
 ## Engineering documentation
 
