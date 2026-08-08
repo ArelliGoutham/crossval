@@ -7,6 +7,8 @@ process.env.MONGODB_DB_NAME = 'crossval';
 process.env.APP_ORIGIN = 'http://localhost:3000';
 process.env.SESSION_TTL_DAYS = '7';
 process.env.BCRYPT_COST = '12';
+process.env.BCRYPT_DUMMY_HASH =
+  '$2b$12$6pXXnmXUHS4PXpEO6JeKFuq/7/7myFbHw9ZouzgxJK1YLAUNhx4wa';
 
 test('the documented host URI supports a transaction through the shared client', async () => {
   const client = await getMongoClient();

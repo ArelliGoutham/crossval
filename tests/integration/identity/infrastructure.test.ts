@@ -15,6 +15,7 @@ import { CryptoSessionTokenGenerator } from '@/modules/identity/infrastructure/c
 import { ensureIdentityIndexes } from '@/modules/identity/infrastructure/ensure-indexes';
 import { MongoAuditLog } from '@/modules/identity/infrastructure/mongo-audit-log';
 import { MongoSessionRepository } from '@/modules/identity/infrastructure/mongo-session-repository';
+import { MongoIdentityTransactionRunner } from '@/modules/identity/infrastructure/mongo-identity-transaction-runner';
 import { MongoUserRepository } from '@/modules/identity/infrastructure/mongo-user-repository';
 import { SystemClock } from '@/modules/identity/infrastructure/system-clock';
 import { resolveMongoClientOptions } from '@/shared/mongodb/client';
@@ -301,5 +302,49 @@ describe('identity infrastructure adapters', () => {
         updatedAt: createdAt,
       }),
     ).rejects.toMatchObject({ code: 'duplicate_email' });
+  });
+
+  test('mongo identity transactions roll back every command write when a later operation fails', async () => {
+    const transactions = new MongoIdentityTransactionRunner(client, database);
+    const createdAt = new Date('2026-08-08T10:00:00.000Z');
+
+    await expect(
+      transactions.run(async (identity) => {
+        await identity.insertUser({
+          id: 'user-1',
+          merchantId: 'merchant-1',
+          email: 'merchant@example.com',
+          passwordHash: 'bcrypt-hash',
+          createdAt,
+          updatedAt: createdAt,
+        });
+        await identity.insertSession({
+          id: 'session-1',
+          userId: 'user-1',
+          merchantId: 'merchant-1',
+          tokenHash: 'token-hash-1',
+          createdAt,
+          expiresAt: new Date('2026-08-15T10:00:00.000Z'),
+        });
+        await identity.recordAudit({
+          action: 'identity.sign_up.succeeded',
+          occurredAt: createdAt,
+          userId: 'user-1',
+          merchantId: 'merchant-1',
+        });
+
+        throw new Error('force transaction rollback');
+      }),
+    ).rejects.toThrow('force transaction rollback');
+
+    await expect(database.collection('users').countDocuments()).resolves.toBe(
+      0,
+    );
+    await expect(
+      database.collection('sessions').countDocuments(),
+    ).resolves.toBe(0);
+    await expect(
+      database.collection('identity_audit_log').countDocuments(),
+    ).resolves.toBe(0);
   });
 });

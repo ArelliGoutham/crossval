@@ -1,17 +1,21 @@
 import { describe, expect, test } from 'vitest';
 import { signUpInputSchema } from '@/modules/identity/domain/schemas';
 import { IdentityService } from '@/modules/identity/application/identity-service';
+import type { AuditLog } from '@/modules/identity/domain/ports';
 import {
   FakePasswordHasher,
   FixedClock,
   InMemoryAuditLog,
+  InMemoryIdentityTransactionRunner,
   InMemorySessionRepository,
   InMemoryUserRepository,
   StubIdGenerator,
   StubSessionTokenGenerator,
 } from '@/modules/identity/application/test-doubles';
 
-function createService(sessionTtlDays = 7) {
+const DUMMY_PASSWORD_HASH = 'hashed:dummy-password';
+
+function createService() {
   const users = new InMemoryUserRepository();
   const sessions = new InMemorySessionRepository();
   const audit = new InMemoryAuditLog();
@@ -31,12 +35,12 @@ function createService(sessionTtlDays = 7) {
   const service = new IdentityService({
     users,
     sessions,
-    audit,
+    transactions: new InMemoryIdentityTransactionRunner(users, sessions, audit),
     hasher,
     tokens,
     ids,
     clock,
-    sessionTtlDays,
+    dummyPasswordHash: DUMMY_PASSWORD_HASH,
   });
 
   return {
@@ -50,8 +54,8 @@ function createService(sessionTtlDays = 7) {
 }
 
 describe('IdentityService', () => {
-  test('sign-up creates a merchant-owned user, session, and safe audit event', async () => {
-    const { service, users, sessions, audit, hasher, clock } = createService(2);
+  test('sign-up creates a merchant-owned user, a fixed seven-day session, and a safe audit event', async () => {
+    const { service, users, sessions, audit, hasher, clock } = createService();
 
     const result = await service.signUp({
       email: ' Merchant@Example.com ',
@@ -64,7 +68,7 @@ describe('IdentityService', () => {
     });
     expect(result.session).toEqual({
       token: 'signup-token',
-      expiresAt: new Date('2026-08-10T10:00:00.000Z'),
+      expiresAt: new Date('2026-08-15T10:00:00.000Z'),
     });
     expect(result.identity.userId).not.toBe(result.identity.merchantId);
     expect(hasher.hashCalls).toEqual(['correcthorse1']);
@@ -82,7 +86,7 @@ describe('IdentityService', () => {
       userId: result.identity.userId,
       merchantId: result.identity.merchantId,
       id: 'session-1',
-      expiresAt: new Date('2026-08-10T10:00:00.000Z'),
+      expiresAt: new Date('2026-08-15T10:00:00.000Z'),
       createdAt: clock.now(),
       revokedAt: null,
     });
@@ -112,7 +116,7 @@ describe('IdentityService', () => {
   });
 
   test('login presents the same invalid-credentials error for missing user and wrong password', async () => {
-    const { service } = createService();
+    const { service, hasher } = createService();
 
     await service.signUp({
       email: 'merchant@example.com',
@@ -125,6 +129,10 @@ describe('IdentityService', () => {
         password: 'correcthorse1',
       }),
     ).rejects.toMatchObject({ code: 'invalid_credentials' });
+    expect(hasher.verifyCalls).toContainEqual({
+      password: 'correcthorse1',
+      passwordHash: DUMMY_PASSWORD_HASH,
+    });
     await expect(
       service.login({
         email: 'merchant@example.com',
@@ -230,6 +238,111 @@ describe('IdentityService', () => {
         merchantId: 'merchant-1',
       },
     ]);
+  });
+
+  test('sign-up leaves no user or session when its audit write fails', async () => {
+    const users = new InMemoryUserRepository();
+    const sessions = new InMemorySessionRepository();
+    const failingAudit: AuditLog = {
+      record: async () => {
+        throw new Error('audit write failed');
+      },
+    };
+    const service = new IdentityService({
+      users,
+      sessions,
+      transactions: new InMemoryIdentityTransactionRunner(
+        users,
+        sessions,
+        failingAudit,
+      ),
+      hasher: new FakePasswordHasher(),
+      tokens: new StubSessionTokenGenerator(['signup-token']),
+      ids: new StubIdGenerator(['user-1', 'merchant-1', 'session-1']),
+      clock: new FixedClock(new Date('2026-08-08T10:00:00.000Z')),
+      dummyPasswordHash: DUMMY_PASSWORD_HASH,
+    });
+
+    await expect(
+      service.signUp({
+        email: 'merchant@example.com',
+        password: 'correcthorse1',
+      }),
+    ).rejects.toThrow('audit write failed');
+
+    expect(users.users).toEqual([]);
+    expect(sessions.sessions).toEqual([]);
+  });
+
+  test('login leaves no session when its audit write fails', async () => {
+    const { service, users, sessions, hasher, clock } = createService();
+    await service.signUp({
+      email: 'merchant@example.com',
+      password: 'correcthorse1',
+    });
+
+    const failingAudit: AuditLog = {
+      record: async () => {
+        throw new Error('audit write failed');
+      },
+    };
+    const failingService = new IdentityService({
+      users,
+      sessions,
+      transactions: new InMemoryIdentityTransactionRunner(
+        users,
+        sessions,
+        failingAudit,
+      ),
+      hasher,
+      tokens: new StubSessionTokenGenerator(['login-token']),
+      ids: new StubIdGenerator(['session-2']),
+      clock,
+      dummyPasswordHash: DUMMY_PASSWORD_HASH,
+    });
+
+    await expect(
+      failingService.login({
+        email: 'merchant@example.com',
+        password: 'correcthorse1',
+      }),
+    ).rejects.toThrow('audit write failed');
+
+    expect(sessions.sessions).toHaveLength(1);
+  });
+
+  test('logout leaves the session active when either audit write fails', async () => {
+    const { service, users, sessions, hasher, clock } = createService();
+    await service.signUp({
+      email: 'merchant@example.com',
+      password: 'correcthorse1',
+    });
+
+    const failingAudit: AuditLog = {
+      record: async () => {
+        throw new Error('audit write failed');
+      },
+    };
+    const failingService = new IdentityService({
+      users,
+      sessions,
+      transactions: new InMemoryIdentityTransactionRunner(
+        users,
+        sessions,
+        failingAudit,
+      ),
+      hasher,
+      tokens: new StubSessionTokenGenerator([]),
+      ids: new StubIdGenerator([]),
+      clock,
+      dummyPasswordHash: DUMMY_PASSWORD_HASH,
+    });
+
+    await expect(failingService.logout('signup-token')).rejects.toThrow(
+      'audit write failed',
+    );
+
+    expect(sessions.sessions[0]?.revokedAt).toBeNull();
   });
 
   test('revoked and expired sessions cannot resolve a merchant', async () => {

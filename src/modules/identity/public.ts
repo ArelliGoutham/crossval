@@ -13,6 +13,8 @@ export type {
   AuditLog,
   Clock,
   IdGenerator,
+  IdentityTransaction,
+  IdentityTransactionRunner,
   PasswordHasher,
   SessionRepository,
   SessionTokenGenerator,

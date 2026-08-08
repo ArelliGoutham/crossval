@@ -43,6 +43,20 @@ export interface AuditLog {
   record(event: IdentityAuditEvent): Promise<void>;
 }
 
+export interface IdentityTransaction {
+  insertUser(user: NewStoredUser): Promise<StoredUser>;
+  insertSession(session: NewStoredSession): Promise<void>;
+  revokeActiveByTokenHash(
+    tokenHash: string,
+    revokedAt: Date,
+  ): Promise<StoredSession | null>;
+  recordAudit(event: IdentityAuditEvent): Promise<void>;
+}
+
+export interface IdentityTransactionRunner {
+  run<T>(operation: (identity: IdentityTransaction) => Promise<T>): Promise<T>;
+}
+
 export interface IdentityAuditEvent {
   action:
     | 'identity.sign_up.succeeded'

@@ -2,9 +2,9 @@ import { createHash } from 'node:crypto';
 
 import { IdentityError } from '@/modules/identity/domain/errors';
 import type {
-  AuditLog,
   Clock,
   IdGenerator,
+  IdentityTransactionRunner,
   PasswordHasher,
   SessionRepository,
   SessionTokenGenerator,
@@ -22,6 +22,7 @@ import type {
   LogoutUseCase,
   LoginUseCase,
   RequireMerchantUseCase,
+  NewStoredSession,
   SessionRecord,
   SignUpResult,
   SignUpUseCase,
@@ -37,9 +38,11 @@ type IdentityServiceDependencies = {
   tokens: SessionTokenGenerator;
   ids: IdGenerator;
   clock: Clock;
-  audit: AuditLog;
-  sessionTtlDays: number;
+  transactions: IdentityTransactionRunner;
+  dummyPasswordHash: string;
 };
+
+const SESSION_LIFETIME_MS = 7 * 24 * 60 * 60 * 1000;
 
 export class IdentityService
   implements SignUpUseCase, LoginUseCase, LogoutUseCase, RequireMerchantUseCase
@@ -50,8 +53,8 @@ export class IdentityService
   readonly #tokens: SessionTokenGenerator;
   readonly #ids: IdGenerator;
   readonly #clock: Clock;
-  readonly #audit: AuditLog;
-  readonly #sessionTtlDays: number;
+  readonly #transactions: IdentityTransactionRunner;
+  readonly #dummyPasswordHash: string;
 
   constructor(dependencies: IdentityServiceDependencies) {
     this.#users = dependencies.users;
@@ -60,8 +63,8 @@ export class IdentityService
     this.#tokens = dependencies.tokens;
     this.#ids = dependencies.ids;
     this.#clock = dependencies.clock;
-    this.#audit = dependencies.audit;
-    this.#sessionTtlDays = dependencies.sessionTtlDays;
+    this.#transactions = dependencies.transactions;
+    this.#dummyPasswordHash = dependencies.dummyPasswordHash;
   }
 
   async signUp(input: SignUpInput): Promise<SignUpResult> {
@@ -79,24 +82,31 @@ export class IdentityService
     const userId = this.#ids.generate();
     const merchantId = this.#ids.generate();
 
-    const user = await this.#users.insert({
+    const user = {
       id: userId,
       merchantId,
       email: credentials.email,
       passwordHash,
       createdAt: now,
       updatedAt: now,
-    });
-    const session = await this.#createSession({
-      userId: user.id,
-      merchantId: user.merchantId,
-    });
+    };
+    const session = await this.#createSession(
+      {
+        userId: user.id,
+        merchantId: user.merchantId,
+      },
+      now,
+    );
 
-    await this.#audit.record({
-      action: 'identity.sign_up.succeeded',
-      occurredAt: now,
-      userId: user.id,
-      merchantId: user.merchantId,
+    await this.#transactions.run(async (identity) => {
+      await identity.insertUser(user);
+      await identity.insertSession(session.storedSession);
+      await identity.recordAudit({
+        action: 'identity.sign_up.succeeded',
+        occurredAt: now,
+        userId: user.id,
+        merchantId: user.merchantId,
+      });
     });
 
     return {
@@ -104,7 +114,7 @@ export class IdentityService
         userId: user.id,
         merchantId: user.merchantId,
       },
-      session,
+      session: session.record,
     };
   }
 
@@ -112,30 +122,32 @@ export class IdentityService
     const credentials = loginInputSchema.parse(input);
     const user = await this.#users.findByNormalizedEmail(credentials.email);
 
-    if (user === null) {
-      throw INVALID_CREDENTIALS_ERROR;
-    }
-
     const passwordMatches = await this.#hasher.verify(
       credentials.password,
-      user.passwordHash,
+      user?.passwordHash ?? this.#dummyPasswordHash,
     );
 
-    if (!passwordMatches) {
+    if (user === null || !passwordMatches) {
       throw INVALID_CREDENTIALS_ERROR;
     }
 
-    const session = await this.#createSession({
-      userId: user.id,
-      merchantId: user.merchantId,
-    });
     const now = this.#clock.now();
+    const session = await this.#createSession(
+      {
+        userId: user.id,
+        merchantId: user.merchantId,
+      },
+      now,
+    );
 
-    await this.#audit.record({
-      action: 'identity.login.succeeded',
-      occurredAt: now,
-      userId: user.id,
-      merchantId: user.merchantId,
+    await this.#transactions.run(async (identity) => {
+      await identity.insertSession(session.storedSession);
+      await identity.recordAudit({
+        action: 'identity.login.succeeded',
+        occurredAt: now,
+        userId: user.id,
+        merchantId: user.merchantId,
+      });
     });
 
     return {
@@ -143,33 +155,32 @@ export class IdentityService
         userId: user.id,
         merchantId: user.merchantId,
       },
-      session,
+      session: session.record,
     };
   }
 
   async logout(sessionToken: string): Promise<void> {
     const now = this.#clock.now();
     const tokenHash = hashToken(sessionToken);
-    const session = await this.#sessions.revokeActiveByTokenHash(
-      tokenHash,
-      now,
-    );
+    await this.#transactions.run(async (identity) => {
+      const session = await identity.revokeActiveByTokenHash(tokenHash, now);
 
-    if (session === null) {
-      return;
-    }
+      if (session === null) {
+        return;
+      }
 
-    await this.#audit.record({
-      action: 'identity.session.revoked',
-      occurredAt: now,
-      userId: session.userId,
-      merchantId: session.merchantId,
-    });
-    await this.#audit.record({
-      action: 'identity.logout.succeeded',
-      occurredAt: now,
-      userId: session.userId,
-      merchantId: session.merchantId,
+      await identity.recordAudit({
+        action: 'identity.session.revoked',
+        occurredAt: now,
+        userId: session.userId,
+        merchantId: session.merchantId,
+      });
+      await identity.recordAudit({
+        action: 'identity.logout.succeeded',
+        occurredAt: now,
+        userId: session.userId,
+        merchantId: session.merchantId,
+      });
     });
   }
 
@@ -191,25 +202,26 @@ export class IdentityService
 
   async #createSession(
     identity: AuthenticatedMerchant,
-  ): Promise<SessionRecord> {
-    const now = this.#clock.now();
+    now: Date,
+  ): Promise<{ record: SessionRecord; storedSession: NewStoredSession }> {
     const token = await this.#tokens.generate();
-    const expiresAt = new Date(
-      now.getTime() + this.#sessionTtlDays * 24 * 60 * 60 * 1000,
-    );
+    const expiresAt = new Date(now.getTime() + SESSION_LIFETIME_MS);
 
-    await this.#sessions.insert({
+    const storedSession = {
       id: this.#ids.generate(),
       userId: identity.userId,
       merchantId: identity.merchantId,
       tokenHash: hashToken(token),
       expiresAt,
       createdAt: now,
-    });
+    };
 
     return {
-      token,
-      expiresAt,
+      record: {
+        token,
+        expiresAt,
+      },
+      storedSession,
     };
   }
 }

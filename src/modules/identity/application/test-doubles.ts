@@ -2,6 +2,8 @@ import type {
   AuditLog,
   Clock,
   IdentityAuditEvent,
+  IdentityTransaction,
+  IdentityTransactionRunner,
   IdGenerator,
   PasswordHasher,
   SessionRepository,
@@ -78,6 +80,63 @@ export class InMemoryAuditLog implements AuditLog {
 
   async record(event: IdentityAuditEvent): Promise<void> {
     this.events.push(event);
+  }
+}
+
+export class InMemoryIdentityTransactionRunner implements IdentityTransactionRunner {
+  readonly #users: InMemoryUserRepository;
+  readonly #sessions: InMemorySessionRepository;
+  readonly #audit: AuditLog;
+
+  constructor(
+    users: InMemoryUserRepository,
+    sessions: InMemorySessionRepository,
+    audit: AuditLog,
+  ) {
+    this.#users = users;
+    this.#sessions = sessions;
+    this.#audit = audit;
+  }
+
+  async run<T>(
+    operation: (identity: IdentityTransaction) => Promise<T>,
+  ): Promise<T> {
+    const usersBefore = this.#users.users.map((user) => ({ ...user }));
+    const sessionsBefore = this.#sessions.sessions.map((session) => ({
+      ...session,
+    }));
+    const eventsBefore =
+      this.#audit instanceof InMemoryAuditLog
+        ? this.#audit.events.map((event) => ({ ...event }))
+        : undefined;
+
+    try {
+      return await operation({
+        insertUser: (user) => this.#users.insert(user),
+        insertSession: (session) => this.#sessions.insert(session),
+        revokeActiveByTokenHash: (tokenHash, revokedAt) =>
+          this.#sessions.revokeActiveByTokenHash(tokenHash, revokedAt),
+        recordAudit: (event) => this.#audit.record(event),
+      });
+    } catch (error: unknown) {
+      this.#users.users.splice(0, this.#users.users.length, ...usersBefore);
+      this.#sessions.sessions.splice(
+        0,
+        this.#sessions.sessions.length,
+        ...sessionsBefore,
+      );
+      if (
+        eventsBefore !== undefined &&
+        this.#audit instanceof InMemoryAuditLog
+      ) {
+        this.#audit.events.splice(
+          0,
+          this.#audit.events.length,
+          ...eventsBefore,
+        );
+      }
+      throw error;
+    }
   }
 }
 

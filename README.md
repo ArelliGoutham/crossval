@@ -11,7 +11,7 @@ Prerequisites: Node.js 20.9 or later, npm, and Docker Compose.
 3. Confirm the replica set is ready: `docker compose exec mongo mongosh --quiet --eval 'rs.status().set'`. It must print `rs0` before running code that uses MongoDB transactions.
 4. Install dependencies with `npm install`, then start the application with `npm run dev`.
 
-`.env.local` supplies the application database connection, database name, canonical origin, session lifetime, and bcrypt cost. The provided local URI selects the Docker replica set; keep `BCRYPT_COST` at 12 or higher.
+`.env.local` supplies the application database connection, database name, canonical origin, fixed seven-day session lifetime, bcrypt cost, and a bcrypt dummy hash for account-independent login verification. The provided local URI selects the Docker replica set; keep `SESSION_TTL_DAYS=7` and `BCRYPT_COST` at 12 or higher.
 
 The local MongoDB client uses a direct connection because Docker exposes one replica-set endpoint (`localhost:27018`) while replica membership uses the internal Docker hostname. Transactions remain available through the single-node `rs0` replica set.
 

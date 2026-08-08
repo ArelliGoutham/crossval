@@ -9,6 +9,8 @@ const validEnvironment = {
   APP_ORIGIN: 'http://localhost:3000',
   SESSION_TTL_DAYS: '7',
   BCRYPT_COST: '12',
+  BCRYPT_DUMMY_HASH:
+    '$2b$12$6pXXnmXUHS4PXpEO6JeKFuq/7/7myFbHw9ZouzgxJK1YLAUNhx4wa',
 } as NodeJS.ProcessEnv;
 
 describe('loadEnvironment', () => {
@@ -19,6 +21,28 @@ describe('loadEnvironment', () => {
   test('rejects bcrypt cost below twelve', () => {
     expect(() =>
       loadEnvironment({ ...validEnvironment, BCRYPT_COST: '11' }),
+    ).toThrow();
+  });
+
+  test.each(['6', '8'])(
+    'rejects a session lifetime other than seven days',
+    (sessionTtlDays) => {
+      expect(() =>
+        loadEnvironment({
+          ...validEnvironment,
+          SESSION_TTL_DAYS: sessionTtlDays,
+        }),
+      ).toThrow();
+    },
+  );
+
+  test('rejects a dummy hash with a different bcrypt cost', () => {
+    expect(() =>
+      loadEnvironment({
+        ...validEnvironment,
+        BCRYPT_DUMMY_HASH:
+          '$2b$10$6pXXnmXUHS4PXpEO6JeKFuq/7/7myFbHw9ZouzgxJK1YLAUNhx4wa',
+      }),
     ).toThrow();
   });
 

@@ -1,4 +1,4 @@
-import type { Collection, Db } from 'mongodb';
+import type { ClientSession, Collection, Db } from 'mongodb';
 
 import type {
   AuditLog,
@@ -14,19 +14,23 @@ type IdentityAuditDocument = {
 
 export class MongoAuditLog implements AuditLog {
   readonly #collection: Collection<IdentityAuditDocument>;
+  readonly #session: ClientSession | undefined;
 
-  constructor(database: Db) {
-    this.#collection = database.collection<IdentityAuditDocument>(
-      'identity_audit_log',
-    );
+  constructor(database: Db, session?: ClientSession) {
+    this.#collection =
+      database.collection<IdentityAuditDocument>('identity_audit_log');
+    this.#session = session;
   }
 
   async record(event: IdentityAuditEvent): Promise<void> {
-    await this.#collection.insertOne({
-      action: event.action,
-      occurredAt: event.occurredAt,
-      userId: event.userId,
-      merchantId: event.merchantId,
-    });
+    await this.#collection.insertOne(
+      {
+        action: event.action,
+        occurredAt: event.occurredAt,
+        userId: event.userId,
+        merchantId: event.merchantId,
+      },
+      { session: this.#session },
+    );
   }
 }

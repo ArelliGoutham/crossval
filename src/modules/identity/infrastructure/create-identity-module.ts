@@ -3,7 +3,7 @@ import { BcryptPasswordHasher } from '@/modules/identity/infrastructure/bcrypt-p
 import { CryptoIdGenerator } from '@/modules/identity/infrastructure/crypto-id-generator';
 import { CryptoSessionTokenGenerator } from '@/modules/identity/infrastructure/crypto-session-token-generator';
 import { ensureIdentityIndexes } from '@/modules/identity/infrastructure/ensure-indexes';
-import { MongoAuditLog } from '@/modules/identity/infrastructure/mongo-audit-log';
+import { MongoIdentityTransactionRunner } from '@/modules/identity/infrastructure/mongo-identity-transaction-runner';
 import { MongoSessionRepository } from '@/modules/identity/infrastructure/mongo-session-repository';
 import { MongoUserRepository } from '@/modules/identity/infrastructure/mongo-user-repository';
 import { SystemClock } from '@/modules/identity/infrastructure/system-clock';
@@ -32,7 +32,7 @@ async function createIdentityModuleInternal(): Promise<IdentityService> {
     tokens: new CryptoSessionTokenGenerator(),
     ids: new CryptoIdGenerator(),
     clock: new SystemClock(),
-    audit: new MongoAuditLog(database),
-    sessionTtlDays: environment.sessionTtlDays,
+    transactions: new MongoIdentityTransactionRunner(client, database),
+    dummyPasswordHash: environment.bcryptDummyHash,
   });
 }

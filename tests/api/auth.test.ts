@@ -26,6 +26,8 @@ describe('authentication API', () => {
       APP_ORIGIN: appOrigin,
       SESSION_TTL_DAYS: '7',
       BCRYPT_COST: '12',
+      BCRYPT_DUMMY_HASH:
+        '$2b$12$6pXXnmXUHS4PXpEO6JeKFuq/7/7myFbHw9ZouzgxJK1YLAUNhx4wa',
     });
 
     client = await MongoClient.connect(

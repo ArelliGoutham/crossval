@@ -1,4 +1,4 @@
-import type { Collection, Db, WithId } from 'mongodb';
+import type { ClientSession, Collection, Db, WithId } from 'mongodb';
 
 import type { SessionRepository } from '@/modules/identity/domain/ports';
 import type {
@@ -18,32 +18,40 @@ type SessionDocument = {
 
 export class MongoSessionRepository implements SessionRepository {
   readonly #collection: Collection<SessionDocument>;
+  readonly #session: ClientSession | undefined;
 
-  constructor(database: Db) {
+  constructor(database: Db, session?: ClientSession) {
     this.#collection = database.collection<SessionDocument>('sessions');
+    this.#session = session;
   }
 
   async insert(session: NewStoredSession): Promise<void> {
-    await this.#collection.insertOne({
-      id: session.id,
-      userId: session.userId,
-      merchantId: session.merchantId,
-      tokenHash: session.tokenHash,
-      expiresAt: session.expiresAt,
-      createdAt: session.createdAt,
-      revokedAt: null,
-    });
+    await this.#collection.insertOne(
+      {
+        id: session.id,
+        userId: session.userId,
+        merchantId: session.merchantId,
+        tokenHash: session.tokenHash,
+        expiresAt: session.expiresAt,
+        createdAt: session.createdAt,
+        revokedAt: null,
+      },
+      { session: this.#session },
+    );
   }
 
   async findActiveByTokenHash(
     tokenHash: string,
     now: Date,
   ): Promise<StoredSession | null> {
-    const document = await this.#collection.findOne({
-      tokenHash,
-      revokedAt: null,
-      expiresAt: { $gt: now },
-    });
+    const document = await this.#collection.findOne(
+      {
+        tokenHash,
+        revokedAt: null,
+        expiresAt: { $gt: now },
+      },
+      { session: this.#session },
+    );
 
     return document === null ? null : toStoredSession(document);
   }
@@ -63,7 +71,7 @@ export class MongoSessionRepository implements SessionRepository {
           revokedAt,
         },
       },
-      { returnDocument: 'after' },
+      { returnDocument: 'after', session: this.#session },
     );
 
     return document === null ? null : toStoredSession(document);
