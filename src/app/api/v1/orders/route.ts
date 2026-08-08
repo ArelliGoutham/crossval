@@ -6,18 +6,13 @@ import {
   createOrderInputSchema,
   listOrdersQuerySchema,
 } from '@/modules/orders/public';
-import {
-  dataResponse,
-  InvalidJsonError,
-} from '@/shared/http/api-response';
+import { dataResponse, InvalidJsonError } from '@/shared/http/api-response';
 import { mapOrdersApiErrorResponse } from '@/app/composition/orders-api-errors';
 import { createRequestContext } from '@/shared/http/request-context';
 import { loadEnvironment } from '@/shared/config/environment';
 import { assertSameOrigin } from '@/shared/http/same-origin';
 
-export async function GET(
-  request: NextRequest,
-): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const context = createRequestContext(request);
 
   try {
@@ -39,9 +34,7 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const context = createRequestContext(request);
 
   try {

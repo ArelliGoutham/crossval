@@ -52,9 +52,7 @@ export const updateOrderInputSchema = z
   });
 
 export const listOrdersQuerySchema = z.object({
-  status: z
-    .enum(['pending', 'partially_paid', 'paid', 'overdue'])
-    .optional(),
+  status: z.enum(['pending', 'partially_paid', 'paid', 'overdue']).optional(),
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderInputSchema>;

@@ -1,11 +1,12 @@
-import type { NewStoredOrder, StoredOrder, StoredLineItem } from '@/modules/orders/domain/types';
+import type {
+  NewStoredOrder,
+  StoredOrder,
+  StoredLineItem,
+} from '@/modules/orders/domain/types';
 
 export interface OrderRepository {
   insert(order: NewStoredOrder): Promise<StoredOrder>;
-  findById(
-    merchantId: string,
-    orderId: string,
-  ): Promise<StoredOrder | null>;
+  findById(merchantId: string, orderId: string): Promise<StoredOrder | null>;
   listActive(merchantId: string): Promise<readonly StoredOrder[]>;
   update(
     merchantId: string,

@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
 import { OrderService } from '@/modules/orders/application/order-service';
-import { OrderError } from '@/modules/orders/domain/errors';
 import {
   FixedClock,
   InMemoryAuditLog,

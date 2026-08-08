@@ -1,11 +1,21 @@
 import { randomUUID } from 'node:crypto';
 
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from 'vitest';
 import { MongoClient, type Db } from 'mongodb';
 import { NextRequest } from 'next/server';
 
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
-import { GET as listOrders, POST as createOrder } from '@/app/api/v1/orders/route';
+import {
+  GET as listOrders,
+  POST as createOrder,
+} from '@/app/api/v1/orders/route';
 import {
   GET as getOrder,
   PATCH as updateOrder,
@@ -94,7 +104,7 @@ describe('orders API', () => {
     expect(body.data.order.status).toBe('pending');
   });
 
-  test('GET /api/v1/orders returns the merchant\'s active orders', async () => {
+  test("GET /api/v1/orders returns the merchant's active orders", async () => {
     await createTestOrder();
 
     const response = await listOrders(

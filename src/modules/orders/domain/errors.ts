@@ -1,7 +1,5 @@
 export type OrderErrorCode =
-  | 'not_found'
-  | 'payment_locked'
-  | 'validation_failed';
+  'not_found' | 'payment_locked' | 'validation_failed';
 
 export class OrderError extends Error {
   readonly code: OrderErrorCode;

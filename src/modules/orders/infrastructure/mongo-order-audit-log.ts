@@ -1,9 +1,6 @@
 import type { ClientSession, Collection, Db } from 'mongodb';
 
-import type {
-  AuditLog,
-  OrderAuditEvent,
-} from '@/modules/orders/domain/ports';
+import type { AuditLog, OrderAuditEvent } from '@/modules/orders/domain/ports';
 
 type OrderAuditDocument = {
   action: OrderAuditEvent['action'];

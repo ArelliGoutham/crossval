@@ -99,8 +99,5 @@ export interface UpdateOrderUseCase {
 }
 
 export interface DeleteOrderUseCase {
-  deleteOrder(
-    merchant: AuthenticatedMerchant,
-    orderId: string,
-  ): Promise<void>;
+  deleteOrder(merchant: AuthenticatedMerchant, orderId: string): Promise<void>;
 }

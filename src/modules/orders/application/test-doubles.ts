@@ -54,9 +54,7 @@ export class InMemoryOrderRepository implements OrderRepository {
   ): Promise<StoredOrder | null> {
     const index = this.orders.findIndex(
       (o) =>
-        o.id === orderId &&
-        o.merchantId === merchantId &&
-        o.deletedAt === null,
+        o.id === orderId && o.merchantId === merchantId && o.deletedAt === null,
     );
 
     if (index === -1) {
@@ -83,9 +81,7 @@ export class InMemoryOrderRepository implements OrderRepository {
   ): Promise<StoredOrder | null> {
     const index = this.orders.findIndex(
       (o) =>
-        o.id === orderId &&
-        o.merchantId === merchantId &&
-        o.deletedAt === null,
+        o.id === orderId && o.merchantId === merchantId && o.deletedAt === null,
     );
 
     if (index === -1) {

@@ -1,7 +1,4 @@
-import {
-  OrderError,
-  type OrderErrorCode,
-} from '@/modules/orders/public';
+import { OrderError, type OrderErrorCode } from '@/modules/orders/public';
 import { errorResponse } from '@/shared/http/api-response';
 import { mapApiErrorResponse } from '@/app/composition/api-errors';
 import type { NextResponse } from 'next/server';

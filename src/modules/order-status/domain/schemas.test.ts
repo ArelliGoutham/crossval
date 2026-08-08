@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest';
 
 import {
   settlementInputSchema,
-  type SettlementStatus,
 } from '@/modules/order-status/domain/schemas';
 
 describe('settlementInputSchema', () => {

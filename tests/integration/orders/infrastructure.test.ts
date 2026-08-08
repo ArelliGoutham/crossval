@@ -45,7 +45,7 @@ describe('orders infrastructure adapters', () => {
     const repo = new MongoOrderRepository(database);
     const now = new Date('2026-08-08T10:00:00.000Z');
 
-    const inserted = await repo.insert({
+    await repo.insert({
       id: 'order-1',
       merchantId: 'merchant-1',
       customer: 'Acme Corp',
@@ -204,10 +204,7 @@ describe('orders infrastructure adapters', () => {
       changedFields: [],
     });
 
-    const docs = await database
-      .collection('orders_audit_log')
-      .find()
-      .toArray();
+    const docs = await database.collection('orders_audit_log').find().toArray();
 
     expect(docs).toHaveLength(1);
     expect(docs[0]?.action).toBe('orders.create.succeeded');

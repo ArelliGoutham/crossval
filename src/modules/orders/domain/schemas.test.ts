@@ -45,9 +45,7 @@ describe('createOrderInputSchema', () => {
     const result = createOrderInputSchema.safeParse({
       customer: 'Acme Corp',
       dueDate: '2026-08-15',
-      lineItems: [
-        { description: '', quantity: 2, unitPriceMinor: 50000 },
-      ],
+      lineItems: [{ description: '', quantity: 2, unitPriceMinor: 50000 }],
     });
 
     expect(result.success).toBe(false);
@@ -81,9 +79,7 @@ describe('createOrderInputSchema', () => {
     const result = createOrderInputSchema.safeParse({
       customer: 'Acme Corp',
       dueDate: '2026-08-15',
-      lineItems: [
-        { description: 'Widget', quantity: 2, unitPriceMinor: 0 },
-      ],
+      lineItems: [{ description: 'Widget', quantity: 2, unitPriceMinor: 0 }],
     });
 
     expect(result.success).toBe(false);
