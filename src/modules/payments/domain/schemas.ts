@@ -26,8 +26,10 @@ export const recordPaymentInputSchema = z.object({
     .string()
     .trim()
     .max(1000, 'Note must be at most 1000 characters.')
-    .optional()
-    .transform((value) => (value === undefined || value === '' ? null : value)),
+    .nullish()
+    .transform((value) =>
+      value === undefined || value === null || value === '' ? null : value,
+    ),
 });
 
 export const idempotencyKeySchema = z
