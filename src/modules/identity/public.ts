@@ -4,6 +4,7 @@ export {
   type LoginInput,
   type SignUpInput,
 } from '@/modules/identity/domain/schemas';
+export { IdentityService } from '@/modules/identity/application/identity-service';
 export {
   IdentityError,
   type IdentityErrorCode,

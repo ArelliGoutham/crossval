@@ -49,12 +49,12 @@ export interface SessionRecord {
 }
 
 export interface SignUpResult {
-  merchant: AuthenticatedMerchant;
+  identity: AuthenticatedMerchant;
   session: SessionRecord;
 }
 
 export interface LoginResult {
-  merchant: AuthenticatedMerchant;
+  identity: AuthenticatedMerchant;
   session: SessionRecord;
 }
 
