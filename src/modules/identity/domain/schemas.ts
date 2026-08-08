@@ -1,9 +1,11 @@
 import { z } from 'zod';
 
 const normalizedEmailSchema = z
-  .email()
+  .email('Enter a valid email address.')
   .transform((email) => email.trim().toLowerCase());
-const passwordSchema = z.string().min(12);
+const passwordSchema = z
+  .string()
+  .min(12, 'Password must contain at least 12 characters.');
 
 const credentialsSchema = z.object({
   email: z.string().trim().pipe(normalizedEmailSchema),
