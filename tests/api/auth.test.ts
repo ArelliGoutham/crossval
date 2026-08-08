@@ -64,6 +64,26 @@ describe('authentication API', () => {
     });
   });
 
+  test('sign-up session cookie has an explicit future expiry and site-wide path', async () => {
+    const beforeSignUp = new Date();
+    const response = await signUp(
+      request('POST', '/api/v1/auth/sign-up', {
+        email: 'expiry@example.com',
+        password: 'correcthorse1',
+      }),
+    );
+    const sessionCookie = response.headers.get('set-cookie');
+
+    expect(response.status).toBe(201);
+    expect(sessionCookie).toContain('Path=/');
+    expect(sessionCookie).toMatch(/Expires=[^;]+/);
+
+    const expiresAt = cookieExpiry(sessionCookie);
+
+    expect(expiresAt).toBeInstanceOf(Date);
+    expect(expiresAt?.getTime()).toBeGreaterThan(beforeSignUp.getTime());
+  });
+
   test('login does not reveal whether an email exists', async () => {
     const missingUserResponse = await login(
       request('POST', '/api/v1/auth/login', {
@@ -100,6 +120,130 @@ describe('authentication API', () => {
         error: {
           code: 'INVALID_CREDENTIALS',
         },
+      },
+    });
+  });
+
+  test('successful login returns a session cookie', async () => {
+    await signUp(
+      request('POST', '/api/v1/auth/sign-up', {
+        email: 'login@example.com',
+        password: 'correcthorse1',
+      }),
+    );
+
+    const response = await login(
+      request('POST', '/api/v1/auth/login', {
+        email: 'login@example.com',
+        password: 'correcthorse1',
+      }),
+    );
+    const sessionCookie = response.headers.get('set-cookie');
+
+    expect(response.status).toBe(200);
+    expect(sessionCookie).toMatch(/^session=[^;]+;/);
+    expect(sessionCookie).toContain('Path=/');
+    expect(sessionCookie).toContain('HttpOnly');
+    expect(sessionCookie).toContain('SameSite=Lax');
+  });
+
+  test('production sign-up session cookie is Secure', async () => {
+    Object.assign(process.env, { NODE_ENV: 'production' });
+
+    try {
+      const response = await signUp(
+        request('POST', '/api/v1/auth/sign-up', {
+          email: 'production@example.com',
+          password: 'correcthorse1',
+        }),
+      );
+
+      expect(response.status).toBe(201);
+      expect(response.headers.get('set-cookie')).toContain('Secure');
+    } finally {
+      Object.assign(process.env, { NODE_ENV: 'test' });
+    }
+  });
+
+  test('sign-up returns a 400 error for malformed JSON', async () => {
+    const response = await signUp(
+      rawRequest('POST', '/api/v1/auth/sign-up', '{'),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'INVALID_JSON',
+      },
+    });
+  });
+
+  test('sign-up rejects a request without a Host header', async () => {
+    const response = await signUp(
+      requestWithoutHost('POST', '/api/v1/auth/sign-up', {
+        email: 'no-host@example.com',
+        password: 'correcthorse1',
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'INVALID_ORIGIN',
+      },
+    });
+  });
+
+  test('login rejects a request with a mismatched Host header', async () => {
+    const response = await login(
+      request('POST', '/api/v1/auth/login', {
+        email: 'merchant@example.com',
+        password: 'correcthorse1',
+      }, {
+        host: 'attacker.example',
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'INVALID_ORIGIN',
+      },
+    });
+  });
+
+  test('sign-up rejects a request with a foreign Origin header', async () => {
+    const response = await signUp(
+      request('POST', '/api/v1/auth/sign-up', {
+        email: 'foreign-sign-up@example.com',
+        password: 'correcthorse1',
+      }, {
+        origin: 'https://attacker.example',
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'INVALID_ORIGIN',
+      },
+    });
+  });
+
+  test('login rejects a request with a foreign Origin header', async () => {
+    const response = await login(
+      request('POST', '/api/v1/auth/login', {
+        email: 'merchant@example.com',
+        password: 'correcthorse1',
+      }, {
+        origin: 'https://attacker.example',
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      error: {
+        code: 'INVALID_ORIGIN',
       },
     });
   });
@@ -207,6 +351,54 @@ function request(
   }
 
   return new NextRequest(new Request(`${appOrigin}${path}`, requestInit));
+}
+
+function requestWithoutHost(
+  method: 'GET' | 'POST',
+  path: string,
+  body?: Record<string, string>,
+): NextRequest {
+  const headers = new Headers();
+  if (method === 'POST') {
+    headers.set('origin', appOrigin);
+  }
+
+  const requestInit: RequestInit = {
+    method,
+    headers,
+  };
+
+  if (body !== undefined) {
+    headers.set('content-type', 'application/json');
+    requestInit.body = JSON.stringify(body);
+  }
+
+  return new NextRequest(new Request(`${appOrigin}${path}`, requestInit));
+}
+
+function rawRequest(
+  method: 'POST',
+  path: string,
+  body: string,
+): NextRequest {
+  return new NextRequest(
+    new Request(`${appOrigin}${path}`, {
+      method,
+      headers: {
+        host: 'localhost:3000',
+        origin: appOrigin,
+        'content-type': 'application/json',
+      },
+      body,
+    }),
+  );
+}
+
+function cookieExpiry(sessionCookie: string | null): Date | undefined {
+  const match = /Expires=([^;]+)/.exec(sessionCookie ?? '');
+  const expiryValue = match?.[1];
+
+  return expiryValue === undefined ? undefined : new Date(expiryValue);
 }
 
 async function asJson(response: Response): Promise<{

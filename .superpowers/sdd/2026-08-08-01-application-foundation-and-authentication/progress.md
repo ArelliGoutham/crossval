@@ -1,0 +1,15 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-08-08-01-application-foundation-and-authentication.md
+
+Task 1: complete (commits e607018..8115fe0, review clean)
+Task 2: fix round 1/5 (host connectivity addressed; production discovery regression found; commits fe1fed8..3dbe372)
+Task 2: fix round 2/5 (production discovery addressed; commits 3dbe372..ae86b10)
+Task 2: complete (commits 8115fe0..ae86b10, review clean)
+Task 3: fix round 1/5 (4 findings addressed; commits c977a31..819332c)
+Task 3: complete (commits ae86b10..819332c, review clean)
+Task 4: complete (commits 819332c..828780e, review clean)
+Task 5: fix round 1/5 (five findings addressed; commits dafb523..04863ed)
+Task 5: fix round 2/5 (atomic logout addressed; commits 04863ed..324d28a)
+Task 5: complete (commits 828780e..324d28a, review clean)
+Task 6: complete (base `64d8334`; API contract fix round reviewed and recorded in `task-6-report.md`)
+Task 7: pending
+Task 8: pending
