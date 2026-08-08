@@ -31,6 +31,8 @@ This application lets a merchant create orders with line items, record full or p
 - An order is editable and deletable only until its first payment; deletion is soft and auditable.
 - Status precedence is `paid`, `overdue`, `partially_paid`, then `pending`.
 - Dates use UTC calendar-date semantics. An order becomes overdue only when the current UTC date is later than its due date.
+- Payments are stored as a separate immutable ledger. A MongoDB transaction atomically reserves an order balance, writes the payment, audit event, and idempotency outcome.
+- Recording a payment requires an idempotency key.
 
 See the approved module designs under `docs/superpowers/specs/` for the authoritative contracts.
 

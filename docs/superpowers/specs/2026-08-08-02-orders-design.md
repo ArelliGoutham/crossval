@@ -21,6 +21,7 @@ This module owns the order document, line items, totals, lifecycle policy, and o
 - `dueDate` is a date-only `YYYY-MM-DD` value. Past dates are valid to support overdue scenarios.
 - Money uses integer minor units. The server calculates `subtotalMinor` and `totalMinor`; clients never supply trusted totals.
 - The initial product uses one configured display currency. Multi-currency is out of scope.
+- Payments are stored in a separate ledger. The order stores a Payments-owned summary projection used for locking and efficient reads.
 
 ## Domain model
 
@@ -35,6 +36,8 @@ This module owns the order document, line items, totals, lifecycle policy, and o
 | `lineItems` | One or more order line items. |
 | `subtotalMinor` | Sum of line-item totals. |
 | `totalMinor` | Equal to `subtotalMinor` for this assignment. |
+| `amountPaidMinor` | Payments-owned cumulative accepted payment amount; initialized to zero. |
+| `paymentCount` | Payments-owned count of accepted payments; initialized to zero. |
 | `createdAt` / `updatedAt` | Audit timestamps. |
 | `deletedAt` | Set when soft-deleted; absent for active orders. |
 
@@ -58,14 +61,15 @@ The Orders module exposes use cases:
 - `updateOrder(merchant, orderId, input)`
 - `deleteOrder(merchant, orderId)`
 
-The module depends only on these ports:
+The Orders use cases depend only on these ports:
 
 - `OrderRepository`
-- `PaymentReadPort`, which exposes `hasPayments(merchantId, orderId)` only
 - `Clock`
 - `AuditLog`
 
-The Orders module must not import a Payments repository or database model. The payment module satisfies `PaymentReadPort` through an adapter.
+Orders determine whether an order is payment-locked from their local `paymentCount` projection; they never import a Payments repository or database model.
+
+For the Payments module, Orders exposes an `OrderSettlementPort` implemented by an adapter. Its conditional reserve operation is the only allowed cross-module path that mutates `amountPaidMinor` or `paymentCount`.
 
 ## Validation and HTTP boundary
 
@@ -79,7 +83,7 @@ Zod schemas are the single source of truth for request validation and inferred t
 | `PATCH /api/orders/:id` | `200` updated order | `400` invalid input; `404` inaccessible order; `409` payment-locked order. |
 | `DELETE /api/orders/:id` | `204` after soft delete | `404` inaccessible order; `409` payment-locked order. |
 
-Incoming payloads accept customer, due date, and line items only. `merchantId`, totals, status, payment amount, and audit fields are server-owned fields.
+Incoming payloads accept customer, due date, and line items only. `merchantId`, totals, status, payment summary, and audit fields are server-owned fields.
 
 ## Persistence and auditability
 
@@ -99,8 +103,8 @@ Write failing tests before implementation for:
 2. Empty descriptions, empty line-item arrays, non-integer or non-positive quantities, and non-positive prices are rejected.
 3. Client-supplied totals, status, merchant IDs, and audit fields are ignored or rejected.
 4. A merchant cannot read or mutate another merchant's order; inaccessible IDs receive `404`.
-5. Active orders can be updated and soft-deleted before a payment exists.
-6. Orders with payments reject update and delete requests with `409`.
+5. Active orders with `paymentCount` zero can be updated and soft-deleted.
+6. Orders with `paymentCount` greater than zero reject update and delete requests with `409`.
 7. Soft-deleted orders are absent from normal list/detail reads and remain represented in the audit trail.
 
 ## Deferred work
