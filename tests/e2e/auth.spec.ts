@@ -16,14 +16,19 @@ test('unauthenticated order visitors are redirected to login', async ({
   await expect(page).toHaveURL(/\/login/);
 });
 
-test('successful sign-up lands the merchant on the dashboard', async ({ page }) => {
+test('successful sign-up lands the merchant on the dashboard', async ({
+  page,
+}) => {
   await signUpThroughPage(page, uniqueEmail(), 'correcthorse1');
 
   await expect(page).toHaveURL(/\/dashboard/);
   await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
 });
 
-test('successful login lands the merchant on the dashboard', async ({ page, context }) => {
+test('successful login lands the merchant on the dashboard', async ({
+  page,
+  context,
+}) => {
   const email = uniqueEmail();
 
   await signUpThroughPage(page, email, 'correcthorse1');
@@ -61,8 +66,10 @@ async function signUpThroughPage(
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Password').fill(password);
   await Promise.all([
-    page.waitForResponse((response) =>
-      response.url().endsWith('/api/v1/auth/sign-up') && response.status() === 201,
+    page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/v1/auth/sign-up') &&
+        response.status() === 201,
     ),
     page.getByRole('button', { name: 'Create account' }).click(),
   ]);
