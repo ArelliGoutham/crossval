@@ -139,7 +139,14 @@ describe('identity infrastructure adapters', () => {
       revokedAt: null,
     });
 
-    await sessionRepository.revokeByTokenHash('token-hash-1', revokedAt);
+    await expect(
+      sessionRepository.revokeActiveByTokenHash('token-hash-1', revokedAt),
+    ).resolves.toMatchObject({
+      id: 'session-1',
+      userId: 'user-1',
+      merchantId: 'merchant-1',
+      revokedAt,
+    });
 
     await expect(
       sessionRepository.findActiveByTokenHash(
@@ -239,6 +246,35 @@ describe('identity infrastructure adapters', () => {
         }),
       ]),
     );
+  });
+
+  test('mongo session repository returns an identity to only one concurrent revoker', async () => {
+    const sessionRepository = new MongoSessionRepository(database);
+    const createdAt = new Date('2026-08-08T10:00:00.000Z');
+    const revokedAt = new Date('2026-08-09T10:00:00.000Z');
+
+    await sessionRepository.insert({
+      id: 'session-1',
+      userId: 'user-1',
+      merchantId: 'merchant-1',
+      tokenHash: 'token-hash-1',
+      expiresAt: new Date('2026-08-15T10:00:00.000Z'),
+      createdAt,
+    });
+
+    const results = await Promise.all([
+      sessionRepository.revokeActiveByTokenHash('token-hash-1', revokedAt),
+      sessionRepository.revokeActiveByTokenHash('token-hash-1', revokedAt),
+    ]);
+    const revokedSessions = results.filter((session) => session !== null);
+
+    expect(revokedSessions).toHaveLength(1);
+    expect(revokedSessions[0]).toMatchObject({
+      id: 'session-1',
+      userId: 'user-1',
+      merchantId: 'merchant-1',
+      revokedAt,
+    });
   });
 
   test('mongo user repository translates a duplicate email index violation', async () => {

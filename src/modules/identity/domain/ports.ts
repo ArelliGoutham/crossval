@@ -16,7 +16,10 @@ export interface SessionRepository {
     tokenHash: string,
     now: Date,
   ): Promise<StoredSession | null>;
-  revokeByTokenHash(tokenHash: string, revokedAt: Date): Promise<void>;
+  revokeActiveByTokenHash(
+    tokenHash: string,
+    revokedAt: Date,
+  ): Promise<StoredSession | null>;
 }
 
 export interface PasswordHasher {

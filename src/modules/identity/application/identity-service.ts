@@ -150,13 +150,15 @@ export class IdentityService
   async logout(sessionToken: string): Promise<void> {
     const now = this.#clock.now();
     const tokenHash = hashToken(sessionToken);
-    const session = await this.#sessions.findActiveByTokenHash(tokenHash, now);
+    const session = await this.#sessions.revokeActiveByTokenHash(
+      tokenHash,
+      now,
+    );
 
     if (session === null) {
       return;
     }
 
-    await this.#sessions.revokeByTokenHash(tokenHash, now);
     await this.#audit.record({
       action: 'identity.session.revoked',
       occurredAt: now,

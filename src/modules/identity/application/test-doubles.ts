@@ -53,14 +53,23 @@ export class InMemorySessionRepository implements SessionRepository {
     );
   }
 
-  async revokeByTokenHash(tokenHash: string, revokedAt: Date): Promise<void> {
+  async revokeActiveByTokenHash(
+    tokenHash: string,
+    revokedAt: Date,
+  ): Promise<StoredSession | null> {
     const session = this.sessions.find(
-      (candidate) => candidate.tokenHash === tokenHash,
+      (candidate) =>
+        candidate.tokenHash === tokenHash &&
+        candidate.revokedAt === null &&
+        candidate.expiresAt > revokedAt,
     );
 
-    if (session !== undefined && session.revokedAt === null) {
-      session.revokedAt = revokedAt;
+    if (session === undefined) {
+      return null;
     }
+
+    session.revokedAt = revokedAt;
+    return { ...session };
   }
 }
 

@@ -196,6 +196,42 @@ describe('IdentityService', () => {
     expect(JSON.stringify(audit.events)).not.toContain('signup-token');
   });
 
+  test('concurrent logout attempts record revocation and logout audits once', async () => {
+    const { service, sessions, audit, clock } = createService();
+
+    await service.signUp({
+      email: 'merchant@example.com',
+      password: 'correcthorse1',
+    });
+
+    await Promise.all([
+      service.logout('signup-token'),
+      service.logout('signup-token'),
+    ]);
+
+    expect(sessions.sessions[0]?.revokedAt).toEqual(clock.now());
+    expect(audit.events).toEqual([
+      {
+        action: 'identity.sign_up.succeeded',
+        occurredAt: clock.now(),
+        userId: 'user-1',
+        merchantId: 'merchant-1',
+      },
+      {
+        action: 'identity.session.revoked',
+        occurredAt: clock.now(),
+        userId: 'user-1',
+        merchantId: 'merchant-1',
+      },
+      {
+        action: 'identity.logout.succeeded',
+        occurredAt: clock.now(),
+        userId: 'user-1',
+        merchantId: 'merchant-1',
+      },
+    ]);
+  });
+
   test('revoked and expired sessions cannot resolve a merchant', async () => {
     const { service, clock } = createService();
 

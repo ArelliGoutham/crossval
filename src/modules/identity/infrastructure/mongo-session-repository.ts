@@ -48,15 +48,25 @@ export class MongoSessionRepository implements SessionRepository {
     return document === null ? null : toStoredSession(document);
   }
 
-  async revokeByTokenHash(tokenHash: string, revokedAt: Date): Promise<void> {
-    await this.#collection.updateOne(
-      { tokenHash },
+  async revokeActiveByTokenHash(
+    tokenHash: string,
+    revokedAt: Date,
+  ): Promise<StoredSession | null> {
+    const document = await this.#collection.findOneAndUpdate(
+      {
+        tokenHash,
+        revokedAt: null,
+        expiresAt: { $gt: revokedAt },
+      },
       {
         $set: {
           revokedAt,
         },
       },
+      { returnDocument: 'after' },
     );
+
+    return document === null ? null : toStoredSession(document);
   }
 }
 
