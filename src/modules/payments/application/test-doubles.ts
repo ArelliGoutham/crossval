@@ -194,6 +194,9 @@ function claimIdempotency(
   );
 
   if (existing !== undefined) {
+    if (existing.requestHash !== record.requestHash) {
+      return Promise.resolve({ status: 'conflict' });
+    }
     if (existing.outcome !== null) {
       const completedRecord: IdempotencyRecord = {
         merchantId: existing.merchantId,
@@ -209,9 +212,6 @@ function claimIdempotency(
         status: 'completed',
         record: completedRecord,
       });
-    }
-    if (existing.requestHash !== record.requestHash) {
-      return Promise.resolve({ status: 'conflict' });
     }
     return Promise.resolve({ status: 'claimed' });
   }
