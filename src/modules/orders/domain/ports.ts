@@ -27,7 +27,19 @@ export interface OrderRepository {
   ): Promise<StoredOrder | null>;
 }
 
+export interface OrderSettlementSnapshot {
+  readonly totalMinor: number;
+  readonly amountPaidMinor: number;
+  readonly dueDate: string;
+  readonly paymentCount: number;
+}
+
 export interface OrderSettlementPort {
+  getOrderSnapshot(
+    merchantId: string,
+    orderId: string,
+  ): Promise<OrderSettlementSnapshot | null>;
+
   reserveBalance(
     merchantId: string,
     orderId: string,

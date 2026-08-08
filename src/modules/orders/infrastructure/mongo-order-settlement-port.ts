@@ -1,6 +1,9 @@
 import type { ClientSession, Collection, Db } from 'mongodb';
 
-import type { OrderSettlementPort } from '@/modules/orders/domain/ports';
+import type {
+  OrderSettlementPort,
+  OrderSettlementSnapshot,
+} from '@/modules/orders/domain/ports';
 
 type OrderDocument = {
   id: string;
@@ -8,6 +11,7 @@ type OrderDocument = {
   totalMinor: number;
   amountPaidMinor: number;
   paymentCount: number;
+  dueDate: string;
   deletedAt: Date | null;
 };
 
@@ -18,6 +22,27 @@ export class MongoOrderSettlementPort implements OrderSettlementPort {
   constructor(database: Db, session: ClientSession) {
     this.#collection = database.collection<OrderDocument>('orders');
     this.#session = session;
+  }
+
+  async getOrderSnapshot(
+    merchantId: string,
+    orderId: string,
+  ): Promise<OrderSettlementSnapshot | null> {
+    const document = await this.#collection.findOne(
+      { id: orderId, merchantId, deletedAt: null },
+      { session: this.#session },
+    );
+
+    if (document === null) {
+      return null;
+    }
+
+    return {
+      totalMinor: document.totalMinor,
+      amountPaidMinor: document.amountPaidMinor,
+      dueDate: document.dueDate,
+      paymentCount: document.paymentCount,
+    };
   }
 
   async reserveBalance(

@@ -11,6 +11,10 @@ export {
   type OrderErrorCode,
 } from '@/modules/orders/domain/errors';
 export type {
+  OrderSettlementPort,
+  OrderSettlementSnapshot,
+} from '@/modules/orders/domain/ports';
+export type {
   CreateOrderUseCase,
   DeleteOrderUseCase,
   GetOrderUseCase,
