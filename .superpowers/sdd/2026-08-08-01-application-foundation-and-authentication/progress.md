@@ -11,5 +11,5 @@ Task 5: fix round 1/5 (five findings addressed; commits dafb523..04863ed)
 Task 5: fix round 2/5 (atomic logout addressed; commits 04863ed..324d28a)
 Task 5: complete (commits 828780e..324d28a, review clean)
 Task 6: complete (base `64d8334`; API contract fix round reviewed and recorded in `task-6-report.md`)
-Task 7: pending
-Task 8: pending
+Task 7: complete (commits `8084ee5` and `ac63061`; authentication screens, server-side route protection, and browser coverage delivered)
+Task 8: complete (base `100a9ef`; fix round adds post-logout protected-route regression and `task-8-report.md`; quality gate has the recorded pre-existing 27-file format blocker)

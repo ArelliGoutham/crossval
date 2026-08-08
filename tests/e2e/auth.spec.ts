@@ -65,6 +65,8 @@ test('logout clears access to protected pages and API identity', async ({
   await page.getByRole('button', { name: 'Log out' }).click();
 
   await expect(page).toHaveURL(/\/login/);
+  await page.goto('/dashboard');
+  await expect(page).toHaveURL(/\/login/);
   await expect((await page.request.get('/api/v1/auth/me')).status()).toBe(401);
 });
 
