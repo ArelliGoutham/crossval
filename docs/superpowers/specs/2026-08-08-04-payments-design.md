@@ -65,8 +65,8 @@ The module depends only on ports: `OrderSettlementPort`, `PaymentRepository`, `I
 
 | Endpoint | Success | Failure behaviour |
 | --- | --- | --- |
-| `POST /api/orders/:id/payments` | `201` new payment; `200` idempotent replay | `400` invalid input; `401` missing session; `404` inaccessible order; `409` key reuse or unresolved in-progress key; `422` over-payment. |
-| `GET /api/orders/:id/payments` | `200` payment history | `401` missing session; `404` inaccessible order. |
+| `POST /api/v1/orders/:id/payments` | `201` new payment; `200` idempotent replay | `400` invalid input; `401` missing session; `404` inaccessible order; `409` key reuse or unresolved in-progress key; `422` over-payment. |
+| `GET /api/v1/orders/:id/payments` | `200` payment history | `401` missing session; `404` inaccessible order. |
 
 Zod validates body and header values. The body accepts amount, payment date, and optional note. The authenticated session supplies merchant and actor identity.
 

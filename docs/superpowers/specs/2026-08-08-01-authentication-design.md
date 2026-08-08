@@ -72,10 +72,10 @@ Zod schemas are the single source of truth for email/password request validation
 
 | Endpoint | Success | Failure behaviour |
 | --- | --- | --- |
-| `POST /api/auth/sign-up` | `201`, session cookie set | `400` invalid input; `409` duplicate email. |
-| `POST /api/auth/login` | `200`, session cookie set | `400` invalid input; generic `401` invalid credentials. |
-| `POST /api/auth/logout` | `204`, session revoked and cookie cleared | Safe to call when no valid session exists. |
-| `GET /api/auth/me` | `200` authenticated identity | `401` absent, expired, or revoked session. |
+| `POST /api/v1/auth/sign-up` | `201`, session cookie set | `400` invalid input; `409` duplicate email. |
+| `POST /api/v1/auth/login` | `200`, session cookie set | `400` invalid input; generic `401` invalid credentials. |
+| `POST /api/v1/auth/logout` | `204`, session revoked and cookie cleared | Safe to call when no valid session exists. |
+| `GET /api/v1/auth/me` | `200` authenticated identity | `401` absent, expired, or revoked session. |
 
 Passwords must be at least 12 characters. Errors never reveal whether a login email exists, and responses never expose password hashes or session tokens.
 

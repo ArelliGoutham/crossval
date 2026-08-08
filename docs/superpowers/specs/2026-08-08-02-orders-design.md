@@ -77,11 +77,11 @@ Zod schemas are the single source of truth for request validation and inferred t
 
 | Endpoint | Success | Failure behaviour |
 | --- | --- | --- |
-| `POST /api/orders` | `201` with created order | `400` invalid input; `401` missing session. |
-| `GET /api/orders` | `200` active orders for current merchant | `401` missing session. |
-| `GET /api/orders/:id` | `200` active order | `404` absent, deleted, or outside merchant scope. |
-| `PATCH /api/orders/:id` | `200` updated order | `400` invalid input; `404` inaccessible order; `409` payment-locked order. |
-| `DELETE /api/orders/:id` | `204` after soft delete | `404` inaccessible order; `409` payment-locked order. |
+| `POST /api/v1/orders` | `201` with created order | `400` invalid input; `401` missing session. |
+| `GET /api/v1/orders` | `200` active orders for current merchant | `401` missing session. |
+| `GET /api/v1/orders/:id` | `200` active order | `404` absent, deleted, or outside merchant scope. |
+| `PATCH /api/v1/orders/:id` | `200` updated order | `400` invalid input; `404` inaccessible order; `409` payment-locked order. |
+| `DELETE /api/v1/orders/:id` | `204` after soft delete | `404` inaccessible order; `409` payment-locked order. |
 
 Incoming payloads accept customer, due date, and line items only. `merchantId`, totals, status, payment summary, and audit fields are server-owned fields.
 
