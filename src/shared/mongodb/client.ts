@@ -7,7 +7,9 @@ let mongoClientPromise: Promise<MongoClient> | undefined;
 export function getMongoClient(): Promise<MongoClient> {
   const { mongodbUri } = loadEnvironment(process.env);
 
-  mongoClientPromise ??= MongoClient.connect(mongodbUri);
+  mongoClientPromise ??= MongoClient.connect(mongodbUri, {
+    directConnection: true,
+  });
 
   return mongoClientPromise;
 }

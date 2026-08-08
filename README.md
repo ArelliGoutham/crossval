@@ -13,6 +13,8 @@ Prerequisites: Node.js 20.9 or later, npm, and Docker Compose.
 
 `.env.local` supplies the application database connection, database name, canonical origin, session lifetime, and bcrypt cost. The provided local URI selects the Docker replica set; keep `BCRYPT_COST` at 12 or higher.
 
+The local MongoDB client uses a direct connection because Docker exposes one replica-set endpoint (`localhost:27018`) while replica membership uses the internal Docker hostname. Transactions remain available through the single-node `rs0` replica set.
+
 Stop the local database with `docker compose down`. Its named volume retains local data; use `docker compose down -v` only when intentionally discarding that data.
 
 ## Engineering documentation
