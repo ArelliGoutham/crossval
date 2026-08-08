@@ -26,14 +26,17 @@ This application lets a merchant create orders with line items, record full or p
 - Payment history is append-only and auditable.
 - Monetary calculations use integer minor units only.
 
-## Open product decisions
+## Settled product decisions
 
-Resolve and record these before implementation:
+- An order is editable and deletable only until its first payment; deletion is soft and auditable.
+- Status precedence is `paid`, `overdue`, `partially_paid`, then `pending`.
+- Dates use UTC calendar-date semantics. An order becomes overdue only when the current UTC date is later than its due date.
 
-1. Status precedence when an unpaid order is past due.
-2. Due-date time zone and the precise moment an order becomes overdue.
-3. Whether orders become read-only after the first payment.
-4. The initial currency and display convention.
+See the approved module designs under `docs/superpowers/specs/` for the authoritative contracts.
+
+## Open product decision
+
+- The initial currency and display convention.
 
 ## Boundaries
 

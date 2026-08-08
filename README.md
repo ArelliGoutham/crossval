@@ -10,7 +10,7 @@ Repository foundation only. Architecture, domain decisions, and implementation p
 
 - [Agent instructions](AGENTS.md)
 - [Domain context](CONTEXT.md)
-- Module designs: [Authentication](docs/superpowers/specs/2026-08-08-01-authentication-design.md), [Orders](docs/superpowers/specs/2026-08-08-02-orders-design.md)
+- Module designs: [Authentication](docs/superpowers/specs/2026-08-08-01-authentication-design.md), [Orders](docs/superpowers/specs/2026-08-08-02-orders-design.md), [Order Status](docs/superpowers/specs/2026-08-08-03-order-status-design.md)
 - [Architecture decisions](docs/adr/README.md)
 - [Agent-development guidance](docs/agents/domain.md)
 
