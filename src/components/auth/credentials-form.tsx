@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useMemo, useState } from 'react';
 
-import { loginInputSchema, signUpInputSchema } from '@/modules/identity/public';
+import { loginInputSchema, signUpInputSchema } from '@/modules/identity/schemas';
 
 type CredentialsMode = 'login' | 'sign-up';
 
