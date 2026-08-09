@@ -4,10 +4,7 @@ import type {
   GetOrderUseCase,
   OrderSummary,
 } from '@/modules/orders/public';
-import type {
-  ListPaymentsUseCase,
-  PaymentListItem,
-} from '@/modules/payments/public';
+import type { ListPaymentsUseCase } from '@/modules/payments/public';
 import type { SettlementStatus } from '@/modules/order-status/public';
 import type {
   DashboardOrderRow,

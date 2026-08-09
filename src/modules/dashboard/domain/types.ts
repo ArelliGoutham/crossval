@@ -12,7 +12,7 @@ export interface DashboardOrderRow {
   readonly dueDate: string;
 }
 
-export interface PaymentHistoryItem extends PaymentListItem {}
+export type PaymentHistoryItem = PaymentListItem;
 
 export interface OrderDetailResult {
   readonly id: string;
