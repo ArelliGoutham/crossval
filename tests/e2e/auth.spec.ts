@@ -22,7 +22,7 @@ test('successful sign-up lands the merchant on the dashboard', async ({
   await signUpThroughPage(page, uniqueEmail(), 'correcthorse1');
 
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Orders' })).toBeVisible();
 });
 
 test('successful login lands the merchant on the dashboard', async ({
@@ -40,7 +40,7 @@ test('successful login lands the merchant on the dashboard', async ({
   await page.getByRole('button', { name: 'Log in' }).click();
 
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Orders' })).toBeVisible();
 });
 
 test('authenticated merchants are redirected from login and sign-up to dashboard', async ({
@@ -50,11 +50,11 @@ test('authenticated merchants are redirected from login and sign-up to dashboard
 
   await page.goto('/login');
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Orders' })).toBeVisible();
 
   await page.goto('/sign-up');
   await expect(page).toHaveURL(/\/dashboard/);
-  await expect(page.getByRole('heading', { name: 'Dashboard' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Orders' })).toBeVisible();
 });
 
 test('logout clears access to protected pages and API identity', async ({
