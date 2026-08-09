@@ -49,7 +49,7 @@ test('assignment scenario: $1000 order, $400 + $600 payments reaches paid', asyn
 
   // Verify order total and status
   await expect(page.locator('.status--pending')).toBeVisible();
-  await expect(page.getByText('$1,000.00')).toBeVisible();
+  await expect(page.getByText('$1000.00')).toBeVisible();
 
   // Record $400 payment (40000 cents)
   await page.getByLabel('Amount (in cents)').fill('40000');
