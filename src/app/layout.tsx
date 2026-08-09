@@ -5,7 +5,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   description: 'Orders and settlements for merchants.',
-  title: 'CrossVal',
+  title: 'CrossVal — Orders & Settlements',
 };
 
 interface RootLayoutProperties {

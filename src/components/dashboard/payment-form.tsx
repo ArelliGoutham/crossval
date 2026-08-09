@@ -83,12 +83,15 @@ export function PaymentForm({
   const dueDisplay = (amountDueMinor / 100).toFixed(2);
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Record Payment</h2>
-      <p>Amount due: ${dueDisplay}</p>
-      <div>
-        <label htmlFor="payment-amount">Amount (in cents)</label>
+    <form className="form-section" onSubmit={handleSubmit}>
+      <h2 className="form-section__title">Record Payment</h2>
+      <p className="form-section__sub">Amount due: ${dueDisplay}</p>
+      <div className="field">
+        <label className="field__label" htmlFor="payment-amount">
+          Amount (in cents)
+        </label>
         <input
+          className="field__input"
           id="payment-amount"
           inputMode="numeric"
           min="1"
@@ -99,9 +102,12 @@ export function PaymentForm({
           value={amountMinor}
         />
       </div>
-      <div>
-        <label htmlFor="payment-date">Payment Date</label>
+      <div className="field">
+        <label className="field__label" htmlFor="payment-date">
+          Payment Date
+        </label>
         <input
+          className="field__input"
           id="payment-date"
           name="paymentDate"
           onChange={(e) => setPaymentDate(e.target.value)}
@@ -109,19 +115,31 @@ export function PaymentForm({
           value={paymentDate}
         />
       </div>
-      <div>
-        <label htmlFor="payment-note">Note (optional)</label>
+      <div className="field">
+        <label className="field__label" htmlFor="payment-note">
+          Note (optional)
+        </label>
         <input
+          className="field__input"
           id="payment-note"
           maxLength={1000}
           name="note"
           onChange={(e) => setNote(e.target.value)}
+          placeholder="Add a note..."
           type="text"
           value={note}
         />
       </div>
-      {error ? <p role="alert">{error}</p> : null}
-      <button disabled={isSubmitting} type="submit">
+      {error ? (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <button
+        className="btn btn--primary btn--block"
+        disabled={isSubmitting}
+        type="submit"
+      >
         {isSubmitting ? 'Recording...' : 'Record Payment'}
       </button>
     </form>

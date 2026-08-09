@@ -99,21 +99,29 @@ export function CreateOrderForm(): React.JSX.Element {
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>Create Order</h2>
-      <div>
-        <label htmlFor="order-customer">Customer</label>
+    <form className="form-section" onSubmit={handleSubmit}>
+      <h2 className="form-section__title">Create Order</h2>
+      <p className="form-section__sub">Add a new order with line items.</p>
+      <div className="field">
+        <label className="field__label" htmlFor="order-customer">
+          Customer
+        </label>
         <input
+          className="field__input"
           id="order-customer"
           name="customer"
           onChange={(e) => setCustomer(e.target.value)}
+          placeholder="Customer name"
           type="text"
           value={customer}
         />
       </div>
-      <div>
-        <label htmlFor="order-due-date">Due Date</label>
+      <div className="field">
+        <label className="field__label" htmlFor="order-due-date">
+          Due Date
+        </label>
         <input
+          className="field__input"
           id="order-due-date"
           name="dueDate"
           onChange={(e) => setDueDate(e.target.value)}
@@ -121,11 +129,12 @@ export function CreateOrderForm(): React.JSX.Element {
           value={dueDate}
         />
       </div>
-      <fieldset>
-        <legend>Line Items</legend>
+      <div className="line-items-field">
+        <div className="line-items-field__legend">Line Items</div>
         {lineItems.map((item, index) => (
-          <div key={index}>
+          <div className="line-item-row" key={index}>
             <input
+              className="field__input"
               onChange={(e) =>
                 updateLineItem(index, 'description', e.target.value)
               }
@@ -134,6 +143,7 @@ export function CreateOrderForm(): React.JSX.Element {
               value={item.description}
             />
             <input
+              className="field__input"
               inputMode="numeric"
               min="1"
               onChange={(e) =>
@@ -144,23 +154,49 @@ export function CreateOrderForm(): React.JSX.Element {
               value={item.quantity}
             />
             <input
+              className="field__input"
               inputMode="numeric"
               min="1"
               onChange={(e) =>
                 updateLineItem(index, 'unitPriceMinor', e.target.value)
               }
-              placeholder="Unit price (cents)"
+              placeholder="Price (cents)"
               type="number"
               value={item.unitPriceMinor}
             />
+            {lineItems.length > 1 ? (
+              <button
+                className="btn btn--sm btn--ghost"
+                onClick={() =>
+                  setLineItems((items) => items.filter((_, i) => i !== index))
+                }
+                type="button"
+              >
+                ✕
+              </button>
+            ) : (
+              <span />
+            )}
           </div>
         ))}
-        <button onClick={addLineItem} type="button">
-          Add Line Item
+        <button
+          className="btn btn--sm line-item-add"
+          onClick={addLineItem}
+          type="button"
+        >
+          + Add Line Item
         </button>
-      </fieldset>
-      {error ? <p role="alert">{error}</p> : null}
-      <button disabled={isSubmitting} type="submit">
+      </div>
+      {error ? (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <button
+        className="btn btn--primary btn--block"
+        disabled={isSubmitting}
+        type="submit"
+      >
         {isSubmitting ? 'Creating...' : 'Create Order'}
       </button>
     </form>

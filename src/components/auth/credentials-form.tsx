@@ -27,7 +27,8 @@ const modeCopy = {
     alternatePrompt: "Don't have an account?",
     buttonLabel: 'Log in',
     endpoint: '/api/v1/auth/login',
-    heading: 'Log in',
+    heading: 'Welcome back',
+    subtitle: 'Enter your credentials to access your dashboard.',
   },
   'sign-up': {
     alternateHref: '/login',
@@ -36,6 +37,7 @@ const modeCopy = {
     buttonLabel: 'Create account',
     endpoint: '/api/v1/auth/sign-up',
     heading: 'Create your account',
+    subtitle: 'Start managing orders and payments in minutes.',
   },
 } as const;
 
@@ -94,46 +96,69 @@ export function CredentialsForm({
   }
 
   return (
-    <section aria-labelledby={`${mode}-title`}>
-      <h1 id={`${mode}-title`}>{copy.heading}</h1>
+    <section>
+      <h1 className="auth-card__title">{copy.heading}</h1>
+      <p className="auth-card__subtitle">{copy.subtitle}</p>
       <form noValidate onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor={`${mode}-email`}>Email</label>
+        <div className="field">
+          <label className="field__label" htmlFor={`${mode}-email`}>
+            Email
+          </label>
           <input
             autoComplete="email"
+            className="field__input"
             id={`${mode}-email`}
             name="email"
             onChange={(event) => setEmail(event.target.value)}
+            placeholder="you@example.com"
             type="email"
             value={email}
           />
-          {fieldErrors.email ? <p role="alert">{fieldErrors.email}</p> : null}
+          {fieldErrors.email ? (
+            <p className="field__error" role="alert">
+              {fieldErrors.email}
+            </p>
+          ) : null}
         </div>
 
-        <div>
-          <label htmlFor={`${mode}-password`}>Password</label>
+        <div className="field">
+          <label className="field__label" htmlFor={`${mode}-password`}>
+            Password
+          </label>
           <input
             autoComplete={
               mode === 'login' ? 'current-password' : 'new-password'
             }
+            className="field__input"
             id={`${mode}-password`}
             name="password"
             onChange={(event) => setPassword(event.target.value)}
+            placeholder="At least 12 characters"
             type="password"
             value={password}
           />
           {fieldErrors.password ? (
-            <p role="alert">{fieldErrors.password}</p>
+            <p className="field__error" role="alert">
+              {fieldErrors.password}
+            </p>
           ) : null}
         </div>
 
-        {formError ? <p role="alert">{formError}</p> : null}
+        {formError ? (
+          <p className="form-error" role="alert">
+            {formError}
+          </p>
+        ) : null}
 
-        <button disabled={isSubmitting} type="submit">
-          {copy.buttonLabel}
+        <button
+          className="btn btn--primary btn--block"
+          disabled={isSubmitting}
+          type="submit"
+        >
+          {isSubmitting ? 'Please wait...' : copy.buttonLabel}
         </button>
       </form>
-      <p>
+      <p className="auth-card__alt">
         {copy.alternatePrompt}{' '}
         <Link href={copy.alternateHref}>{copy.alternateLabel}</Link>
       </p>

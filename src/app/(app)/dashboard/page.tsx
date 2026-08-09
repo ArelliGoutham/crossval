@@ -41,18 +41,15 @@ export default async function DashboardPage({
   const orders = await dashboardService.getDashboardOrders(merchant, filters);
 
   return (
-    <main>
-      <h1>Orders</h1>
-      <nav className="status-filters">
+    <main className="app-main">
+      <div className="dash-header">
+        <h1 className="dash-title">Orders</h1>
+      </div>
+
+      <div className="filters">
         {STATUS_FILTERS.map((status) => (
           <Link
-            className={
-              status === 'all' && filters.status === undefined
-                ? 'active'
-                : filters.status === status
-                  ? 'active'
-                  : ''
-            }
+            className={`filter-pill ${status === 'all' && filters.status === undefined ? 'filter-pill--active' : filters.status === status ? 'filter-pill--active' : ''}`}
             href={
               status === 'all' ? '/dashboard' : `/dashboard?status=${status}`
             }
@@ -61,42 +58,51 @@ export default async function DashboardPage({
             {status.replace('_', ' ')}
           </Link>
         ))}
-      </nav>
+      </div>
 
       {orders.length === 0 ? (
-        <div className="empty-state">
-          <p>No orders found. Create one to get started.</p>
+        <div className="card card--pad">
+          <div className="empty">
+            <div className="empty__icon">&#128230;</div>
+            <p className="empty__text">
+              No orders found. Create one to get started.
+            </p>
+          </div>
           <CreateOrderForm />
         </div>
       ) : (
-        <table>
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>Status</th>
-              <th>Total</th>
-              <th>Paid</th>
-              <th>Due</th>
-              <th>Due Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map((order) => (
-              <tr key={order.id}>
-                <td>
-                  <Link href={`/orders/${order.id}`}>{order.customer}</Link>
-                </td>
-                <td className={`status status--${order.status}`}>
-                  {order.status.replace('_', ' ')}
-                </td>
-                <td>{formatMinor(order.totalMinor)}</td>
-                <td>{formatMinor(order.amountPaidMinor)}</td>
-                <td>{formatMinor(order.amountDueMinor)}</td>
-                <td>{order.dueDate}</td>
+        <div className="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Customer</th>
+                <th>Status</th>
+                <th>Total</th>
+                <th>Paid</th>
+                <th>Due</th>
+                <th>Due Date</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {orders.map((order) => (
+                <tr key={order.id}>
+                  <td>
+                    <Link href={`/orders/${order.id}`}>{order.customer}</Link>
+                  </td>
+                  <td>
+                    <span className={`badge badge--${order.status}`}>
+                      {order.status.replace('_', ' ')}
+                    </span>
+                  </td>
+                  <td>{formatMinor(order.totalMinor)}</td>
+                  <td>{formatMinor(order.amountPaidMinor)}</td>
+                  <td>{formatMinor(order.amountDueMinor)}</td>
+                  <td>{order.dueDate}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
     </main>
   );

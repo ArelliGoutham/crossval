@@ -35,13 +35,18 @@ export function LogoutButton(): React.JSX.Element {
   return (
     <div className="app-shell__actions">
       <button
+        className="btn btn--sm btn--ghost"
         onClick={() => void handleLogout()}
         disabled={isSubmitting}
         type="button"
       >
-        Log out
+        {isSubmitting ? 'Logging out...' : 'Log out'}
       </button>
-      {errorMessage ? <p role="alert">{errorMessage}</p> : null}
+      {errorMessage ? (
+        <p className="field__error" role="alert">
+          {errorMessage}
+        </p>
+      ) : null}
     </div>
   );
 }

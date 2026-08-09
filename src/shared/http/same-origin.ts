@@ -8,7 +8,8 @@ export function assertSameOrigin(
 ): void {
   const configuredOrigin = new URL(appOrigin);
   const originHeader = request.headers.get('origin');
-  const hostHeader = request.headers.get('host');
+  const hostHeader =
+    request.headers.get('x-forwarded-host') ?? request.headers.get('host');
 
   if (
     originHeader === null ||
