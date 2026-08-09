@@ -1,6 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from 'vitest';
 import { MongoClient, type Db } from 'mongodb';
 import { NextRequest } from 'next/server';
 
@@ -173,11 +180,10 @@ describe('payments API', () => {
 
   test('missing idempotency key returns 400', async () => {
     const response = await recordPayment(
-      authedRequest(
-        'POST',
-        `/api/v1/orders/${orderId}/payments`,
-        { amountMinor: 40000, paymentDate: '2026-08-08' },
-      ),
+      authedRequest('POST', `/api/v1/orders/${orderId}/payments`, {
+        amountMinor: 40000,
+        paymentDate: '2026-08-08',
+      }),
       { params: Promise.resolve({ id: orderId }) },
     );
 

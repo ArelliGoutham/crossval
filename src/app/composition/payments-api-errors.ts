@@ -1,7 +1,4 @@
-import {
-  PaymentError,
-  type PaymentErrorCode,
-} from '@/modules/payments/public';
+import { PaymentError, type PaymentErrorCode } from '@/modules/payments/public';
 import { errorResponse } from '@/shared/http/api-response';
 import { mapApiErrorResponse } from '@/app/composition/api-errors';
 import type { NextResponse } from 'next/server';

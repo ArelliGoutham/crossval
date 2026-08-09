@@ -117,11 +117,26 @@ describe('PaymentService.recordPayment', () => {
   test('assignment over-payment: $1 after full payment is rejected', async () => {
     const { service, payments } = createService(100000);
 
-    await service.recordPayment(MERCHANT, 'order-1', { amountMinor: 40000, paymentDate: '2026-08-08', note: null }, 'key-1');
-    await service.recordPayment(MERCHANT, 'order-1', { amountMinor: 60000, paymentDate: '2026-08-08', note: null }, 'key-2');
+    await service.recordPayment(
+      MERCHANT,
+      'order-1',
+      { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
+      'key-1',
+    );
+    await service.recordPayment(
+      MERCHANT,
+      'order-1',
+      { amountMinor: 60000, paymentDate: '2026-08-08', note: null },
+      'key-2',
+    );
 
     await expect(
-      service.recordPayment(MERCHANT, 'order-1', { amountMinor: 100, paymentDate: '2026-08-08', note: null }, 'key-3'),
+      service.recordPayment(
+        MERCHANT,
+        'order-1',
+        { amountMinor: 100, paymentDate: '2026-08-08', note: null },
+        'key-3',
+      ),
     ).rejects.toMatchObject({
       code: 'overpayment',
       details: { maximumAllowedAmountMinor: 0 },
@@ -134,13 +149,15 @@ describe('PaymentService.recordPayment', () => {
     const { service, payments } = createService();
 
     const first = await service.recordPayment(
-      MERCHANT, 'order-1',
+      MERCHANT,
+      'order-1',
       { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
       'key-1',
     );
 
     const second = await service.recordPayment(
-      MERCHANT, 'order-1',
+      MERCHANT,
+      'order-1',
       { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
       'key-1',
     );
@@ -154,10 +171,20 @@ describe('PaymentService.recordPayment', () => {
   test('same key with different request returns idempotency_key_reused', async () => {
     const { service } = createService();
 
-    await service.recordPayment(MERCHANT, 'order-1', { amountMinor: 40000, paymentDate: '2026-08-08', note: null }, 'key-1');
+    await service.recordPayment(
+      MERCHANT,
+      'order-1',
+      { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
+      'key-1',
+    );
 
     await expect(
-      service.recordPayment(MERCHANT, 'order-1', { amountMinor: 60000, paymentDate: '2026-08-08', note: null }, 'key-1'),
+      service.recordPayment(
+        MERCHANT,
+        'order-1',
+        { amountMinor: 60000, paymentDate: '2026-08-08', note: null },
+        'key-1',
+      ),
     ).rejects.toMatchObject({ code: 'idempotency_key_reused' });
   });
 
@@ -165,7 +192,12 @@ describe('PaymentService.recordPayment', () => {
     const { service } = createService();
 
     await expect(
-      service.recordPayment(OTHER_MERCHANT, 'order-1', { amountMinor: 40000, paymentDate: '2026-08-08', note: null }, 'key-1'),
+      service.recordPayment(
+        OTHER_MERCHANT,
+        'order-1',
+        { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
+        'key-1',
+      ),
     ).rejects.toMatchObject({ code: 'order_not_found' });
   });
 
@@ -173,8 +205,13 @@ describe('PaymentService.recordPayment', () => {
     const { service, payments } = createService();
 
     await service.recordPayment(
-      MERCHANT, 'order-1',
-      { amountMinor: 40000, paymentDate: '2026-08-08', note: 'First installment' },
+      MERCHANT,
+      'order-1',
+      {
+        amountMinor: 40000,
+        paymentDate: '2026-08-08',
+        note: 'First installment',
+      },
       'key-1',
     );
 
@@ -185,7 +222,12 @@ describe('PaymentService.recordPayment', () => {
     const { service } = createService();
 
     await expect(
-      service.recordPayment(MERCHANT, 'nonexistent', { amountMinor: 40000, paymentDate: '2026-08-08', note: null }, 'key-1'),
+      service.recordPayment(
+        MERCHANT,
+        'nonexistent',
+        { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
+        'key-1',
+      ),
     ).rejects.toMatchObject({ code: 'order_not_found' });
   });
 });
@@ -194,8 +236,18 @@ describe('PaymentService.listPayments', () => {
   test('lists payments ordered by date then creation', async () => {
     const { service } = createService();
 
-    const p1 = await service.recordPayment(MERCHANT, 'order-1', { amountMinor: 40000, paymentDate: '2026-08-08', note: null }, 'key-1');
-    const p2 = await service.recordPayment(MERCHANT, 'order-1', { amountMinor: 60000, paymentDate: '2026-08-08', note: null }, 'key-2');
+    const p1 = await service.recordPayment(
+      MERCHANT,
+      'order-1',
+      { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
+      'key-1',
+    );
+    const p2 = await service.recordPayment(
+      MERCHANT,
+      'order-1',
+      { amountMinor: 60000, paymentDate: '2026-08-08', note: null },
+      'key-2',
+    );
 
     const list = await service.listPayments(MERCHANT, 'order-1');
     expect(list).toHaveLength(2);
@@ -206,7 +258,12 @@ describe('PaymentService.listPayments', () => {
   test('cross-merchant list returns empty', async () => {
     const { service } = createService();
 
-    await service.recordPayment(MERCHANT, 'order-1', { amountMinor: 40000, paymentDate: '2026-08-08', note: null }, 'key-1');
+    await service.recordPayment(
+      MERCHANT,
+      'order-1',
+      { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
+      'key-1',
+    );
 
     const list = await service.listPayments(OTHER_MERCHANT, 'order-1');
     expect(list).toHaveLength(0);
@@ -222,7 +279,12 @@ describe('PaymentService.hasPayments', () => {
   test('returns true after a payment', async () => {
     const { service } = createService();
 
-    await service.recordPayment(MERCHANT, 'order-1', { amountMinor: 40000, paymentDate: '2026-08-08', note: null }, 'key-1');
+    await service.recordPayment(
+      MERCHANT,
+      'order-1',
+      { amountMinor: 40000, paymentDate: '2026-08-08', note: null },
+      'key-1',
+    );
 
     expect(await service.hasPayments('merchant-1', 'order-1')).toBe(true);
   });

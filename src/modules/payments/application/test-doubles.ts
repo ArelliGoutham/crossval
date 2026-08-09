@@ -68,9 +68,7 @@ type IdempotencyState = {
   completedAt: Date | null;
 };
 
-export class InMemoryPaymentTransactionRunner
-  implements PaymentTransactionRunner
-{
+export class InMemoryPaymentTransactionRunner implements PaymentTransactionRunner {
   readonly #payments: InMemoryPaymentRepository;
   readonly #auditEvents: PaymentAuditEvent[] = [];
   readonly #idempotency: IdempotencyState[] = [];
@@ -132,7 +130,8 @@ function getOrderSnapshot(
   orderId: string,
 ): Promise<OrderSettlementSnapshot | null> {
   const order = orders.find(
-    (o) => o.id === orderId && o.merchantId === merchantId && o.deletedAt === null,
+    (o) =>
+      o.id === orderId && o.merchantId === merchantId && o.deletedAt === null,
   );
   if (order === undefined) {
     return Promise.resolve(null);
@@ -152,7 +151,8 @@ function reserveBalance(
   requestedAmountMinor: number,
 ): ReturnType<OrderSettlementPort['reserveBalance']> {
   const order = orders.find(
-    (o) => o.id === orderId && o.merchantId === merchantId && o.deletedAt === null,
+    (o) =>
+      o.id === orderId && o.merchantId === merchantId && o.deletedAt === null,
   );
 
   if (order === undefined) {

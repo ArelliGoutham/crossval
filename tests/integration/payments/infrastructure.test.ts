@@ -122,7 +122,12 @@ describe('payments infrastructure adapters', () => {
     const now = new Date();
 
     const claim1 = await repo.claim(
-      { merchantId: 'merchant-1', operation: 'recordPayment', key: 'key-1', requestHash: 'hash-1' },
+      {
+        merchantId: 'merchant-1',
+        operation: 'recordPayment',
+        key: 'key-1',
+        requestHash: 'hash-1',
+      },
       now,
     );
     expect(claim1.status).toBe('claimed');
@@ -137,7 +142,12 @@ describe('payments infrastructure adapters', () => {
     );
 
     const claim2 = await repo.claim(
-      { merchantId: 'merchant-1', operation: 'recordPayment', key: 'key-1', requestHash: 'hash-1' },
+      {
+        merchantId: 'merchant-1',
+        operation: 'recordPayment',
+        key: 'key-1',
+        requestHash: 'hash-1',
+      },
       now,
     );
     expect(claim2.status).toBe('completed');
@@ -148,12 +158,22 @@ describe('payments infrastructure adapters', () => {
     const now = new Date();
 
     await repo.claim(
-      { merchantId: 'merchant-1', operation: 'recordPayment', key: 'key-1', requestHash: 'hash-1' },
+      {
+        merchantId: 'merchant-1',
+        operation: 'recordPayment',
+        key: 'key-1',
+        requestHash: 'hash-1',
+      },
       now,
     );
 
     const claim = await repo.claim(
-      { merchantId: 'merchant-1', operation: 'recordPayment', key: 'key-1', requestHash: 'hash-2' },
+      {
+        merchantId: 'merchant-1',
+        operation: 'recordPayment',
+        key: 'key-1',
+        requestHash: 'hash-2',
+      },
       now,
     );
     expect(claim.status).toBe('conflict');
@@ -194,13 +214,21 @@ describe('payments infrastructure adapters', () => {
       await session.withTransaction(async () => {
         const port = new MongoOrderSettlementPort(database, session);
 
-        const result1 = await port.reserveBalance('merchant-1', 'order-1', 60000);
+        const result1 = await port.reserveBalance(
+          'merchant-1',
+          'order-1',
+          60000,
+        );
         expect(result1.succeeded).toBe(true);
         if (result1.succeeded) {
           expect(result1.amountPaidMinor).toBe(60000);
         }
 
-        const result2 = await port.reserveBalance('merchant-1', 'order-1', 50000);
+        const result2 = await port.reserveBalance(
+          'merchant-1',
+          'order-1',
+          50000,
+        );
         expect(result2.succeeded).toBe(false);
         if (!result2.succeeded) {
           expect(result2.maximumAllowedAmountMinor).toBe(40000);

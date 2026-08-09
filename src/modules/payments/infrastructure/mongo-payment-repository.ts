@@ -54,14 +54,12 @@ export class MongoPaymentRepository implements PaymentRepository {
       { session: this.#session },
     );
     const documents = await cursor.toArray();
-    return documents
-      .map(toStoredPayment)
-      .sort((a, b) => {
-        if (a.paymentDate !== b.paymentDate) {
-          return a.paymentDate < b.paymentDate ? -1 : 1;
-        }
-        return a.createdAt.getTime() - b.createdAt.getTime();
-      });
+    return documents.map(toStoredPayment).sort((a, b) => {
+      if (a.paymentDate !== b.paymentDate) {
+        return a.paymentDate < b.paymentDate ? -1 : 1;
+      }
+      return a.createdAt.getTime() - b.createdAt.getTime();
+    });
   }
 
   async countByOrderId(merchantId: string, orderId: string): Promise<number> {

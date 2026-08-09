@@ -22,8 +22,9 @@ export class MongoIdempotencyRepository implements IdempotencyRepository {
   readonly #session: ClientSession | undefined;
 
   constructor(database: Db, session?: ClientSession) {
-    this.#collection =
-      database.collection<IdempotencyDocument>('idempotency_records');
+    this.#collection = database.collection<IdempotencyDocument>(
+      'idempotency_records',
+    );
     this.#session = session;
   }
 

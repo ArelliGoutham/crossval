@@ -88,10 +88,7 @@ export class PaymentService
         );
       }
 
-      const snapshot = await tx.getOrderSnapshot(
-        merchant.merchantId,
-        orderId,
-      );
+      const snapshot = await tx.getOrderSnapshot(merchant.merchantId, orderId);
 
       if (snapshot === null) {
         throw new PaymentError('order_not_found', 'Order not found.');
