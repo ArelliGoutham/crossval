@@ -1,6 +1,13 @@
 import { randomUUID } from 'node:crypto';
 
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from 'vitest';
 import { MongoClient, type Db } from 'mongodb';
 import { NextRequest } from 'next/server';
 
@@ -198,12 +205,17 @@ describe('authentication API', () => {
 
   test('login rejects a request with a mismatched Host header', async () => {
     const response = await login(
-      request('POST', '/api/v1/auth/login', {
-        email: 'merchant@example.com',
-        password: 'correcthorse1',
-      }, {
-        host: 'attacker.example',
-      }),
+      request(
+        'POST',
+        '/api/v1/auth/login',
+        {
+          email: 'merchant@example.com',
+          password: 'correcthorse1',
+        },
+        {
+          host: 'attacker.example',
+        },
+      ),
     );
 
     expect(response.status).toBe(400);
@@ -216,12 +228,17 @@ describe('authentication API', () => {
 
   test('sign-up rejects a request with a foreign Origin header', async () => {
     const response = await signUp(
-      request('POST', '/api/v1/auth/sign-up', {
-        email: 'foreign-sign-up@example.com',
-        password: 'correcthorse1',
-      }, {
-        origin: 'https://attacker.example',
-      }),
+      request(
+        'POST',
+        '/api/v1/auth/sign-up',
+        {
+          email: 'foreign-sign-up@example.com',
+          password: 'correcthorse1',
+        },
+        {
+          origin: 'https://attacker.example',
+        },
+      ),
     );
 
     expect(response.status).toBe(400);
@@ -234,12 +251,17 @@ describe('authentication API', () => {
 
   test('login rejects a request with a foreign Origin header', async () => {
     const response = await login(
-      request('POST', '/api/v1/auth/login', {
-        email: 'merchant@example.com',
-        password: 'correcthorse1',
-      }, {
-        origin: 'https://attacker.example',
-      }),
+      request(
+        'POST',
+        '/api/v1/auth/login',
+        {
+          email: 'merchant@example.com',
+          password: 'correcthorse1',
+        },
+        {
+          origin: 'https://attacker.example',
+        },
+      ),
     );
 
     expect(response.status).toBe(400);
@@ -378,11 +400,7 @@ function requestWithoutHost(
   return new NextRequest(new Request(`${appOrigin}${path}`, requestInit));
 }
 
-function rawRequest(
-  method: 'POST',
-  path: string,
-  body: string,
-): NextRequest {
+function rawRequest(method: 'POST', path: string, body: string): NextRequest {
   return new NextRequest(
     new Request(`${appOrigin}${path}`, {
       method,

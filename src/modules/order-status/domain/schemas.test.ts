@@ -1,8 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
-import {
-  settlementInputSchema,
-} from '@/modules/order-status/domain/schemas';
+import { settlementInputSchema } from '@/modules/order-status/domain/schemas';
 
 describe('settlementInputSchema', () => {
   test('accepts valid input with positive total and zero paid', () => {

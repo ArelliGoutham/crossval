@@ -10,6 +10,8 @@ export default defineConfig({
     env: {
       APP_ORIGIN: 'http://localhost:3000',
       BCRYPT_COST: '12',
+      BCRYPT_DUMMY_HASH:
+        '$2b$12$6pXXnmXUHS4PXpEO6JeKFuq/7/7myFbHw9ZouzgxJK1YLAUNhx4wa',
       MONGODB_DB_NAME: 'crossval_task_7_e2e',
       MONGODB_URI: 'mongodb://localhost:27018/?replicaSet=rs0',
       NODE_ENV: 'test',

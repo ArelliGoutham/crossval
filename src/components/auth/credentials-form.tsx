@@ -4,10 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { type FormEvent, useMemo, useState } from 'react';
 
-import {
-  loginInputSchema,
-  signUpInputSchema,
-} from '@/modules/identity/public';
+import { loginInputSchema, signUpInputSchema } from '@/modules/identity/public';
 
 type CredentialsMode = 'login' | 'sign-up';
 
@@ -54,7 +51,9 @@ export function CredentialsForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
+  async function handleSubmit(
+    event: FormEvent<HTMLFormElement>,
+  ): Promise<void> {
     event.preventDefault();
     setFormError(null);
 
@@ -105,15 +104,15 @@ export function CredentialsForm({
             type="email"
             value={email}
           />
-          {fieldErrors.email ? (
-            <p role="alert">{fieldErrors.email}</p>
-          ) : null}
+          {fieldErrors.email ? <p role="alert">{fieldErrors.email}</p> : null}
         </div>
 
         <div>
           <label htmlFor={`${mode}-password`}>Password</label>
           <input
-            autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+            autoComplete={
+              mode === 'login' ? 'current-password' : 'new-password'
+            }
             id={`${mode}-password`}
             name="password"
             onChange={(event) => setPassword(event.target.value)}
@@ -160,13 +159,11 @@ function collectFieldErrors(
 }
 
 async function readSafeErrorMessage(response: Response): Promise<string> {
-  const body = (await response.json().catch(() => null)) as
-    | {
-        error?: {
-          code?: string;
-        };
-      }
-    | null;
+  const body = (await response.json().catch(() => null)) as {
+    error?: {
+      code?: string;
+    };
+  } | null;
 
   switch (body?.error?.code) {
     case 'DUPLICATE_EMAIL':
