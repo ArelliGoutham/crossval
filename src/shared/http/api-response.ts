@@ -79,6 +79,8 @@ export function mapErrorResponse(
   console.error('Unhandled API error', {
     requestId,
     errorName: error instanceof Error ? error.name : typeof error,
+    errorMessage: error instanceof Error ? error.message : undefined,
+    errorStack: error instanceof Error ? error.stack : undefined,
   });
 
   return errorResponse({
