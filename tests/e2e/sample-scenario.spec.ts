@@ -56,7 +56,7 @@ test('assignment scenario: $1000 order, $400 + $600 payments reaches paid', asyn
   await expect(page).toHaveURL(/\/orders\//);
 
   // Verify order total and status
-  await expect(page.locator('.status--pending')).toBeVisible();
+  await expect(page.locator('.badge--pending')).toBeVisible();
   await expect(page.getByText('$1000.00').first()).toBeVisible();
 
   // Record $400 payment (40000 cents)
@@ -67,7 +67,7 @@ test('assignment scenario: $1000 order, $400 + $600 payments reaches paid', asyn
   await page.getByRole('button', { name: 'Record Payment' }).click();
 
   // Status should be partially_paid, amount due $600.00
-  await expect(page.locator('.status--partially_paid')).toBeVisible();
+  await expect(page.locator('.badge--partially_paid')).toBeVisible();
   await expect(page.getByText('$600.00').first()).toBeVisible();
 
   // Record $600 payment (60000 cents)
@@ -75,7 +75,7 @@ test('assignment scenario: $1000 order, $400 + $600 payments reaches paid', asyn
   await page.getByRole('button', { name: 'Record Payment' }).click();
 
   // Status should be paid, amount due $0.00
-  await expect(page.locator('.status--paid')).toBeVisible();
+  await expect(page.locator('.badge--paid')).toBeVisible();
   await expect(page.getByText('$0.00').first()).toBeVisible();
 
   // Payment form should be hidden when balance is zero
