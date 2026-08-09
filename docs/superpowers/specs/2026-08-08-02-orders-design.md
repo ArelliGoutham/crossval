@@ -27,28 +27,28 @@ This module owns the order document, line items, totals, lifecycle policy, and o
 
 ### Order
 
-| Field | Meaning |
-| --- | --- |
-| `id` | Immutable order identifier. |
-| `merchantId` | Tenant identifier from the authenticated session. |
-| `customer` | Non-empty customer name. |
-| `dueDate` | Date-only payment expectation. |
-| `lineItems` | One or more order line items. |
-| `subtotalMinor` | Sum of line-item totals. |
-| `totalMinor` | Equal to `subtotalMinor` for this assignment. |
-| `amountPaidMinor` | Payments-owned cumulative accepted payment amount; initialized to zero. |
-| `paymentCount` | Payments-owned count of accepted payments; initialized to zero. |
-| `createdAt` / `updatedAt` | Audit timestamps. |
-| `deletedAt` | Set when soft-deleted; absent for active orders. |
+| Field                     | Meaning                                                                 |
+| ------------------------- | ----------------------------------------------------------------------- |
+| `id`                      | Immutable order identifier.                                             |
+| `merchantId`              | Tenant identifier from the authenticated session.                       |
+| `customer`                | Non-empty customer name.                                                |
+| `dueDate`                 | Date-only payment expectation.                                          |
+| `lineItems`               | One or more order line items.                                           |
+| `subtotalMinor`           | Sum of line-item totals.                                                |
+| `totalMinor`              | Equal to `subtotalMinor` for this assignment.                           |
+| `amountPaidMinor`         | Payments-owned cumulative accepted payment amount; initialized to zero. |
+| `paymentCount`            | Payments-owned count of accepted payments; initialized to zero.         |
+| `createdAt` / `updatedAt` | Audit timestamps.                                                       |
+| `deletedAt`               | Set when soft-deleted; absent for active orders.                        |
 
 ### Line item
 
-| Field | Meaning |
-| --- | --- |
-| `id` | Stable line-item identifier. |
-| `description` | Non-empty item name. |
-| `quantity` | Positive integer, at least 1. |
-| `unitPriceMinor` | Positive integer minor-unit price, at least 1. |
+| Field            | Meaning                                                |
+| ---------------- | ------------------------------------------------------ |
+| `id`             | Stable line-item identifier.                           |
+| `description`    | Non-empty item name.                                   |
+| `quantity`       | Positive integer, at least 1.                          |
+| `unitPriceMinor` | Positive integer minor-unit price, at least 1.         |
 | `lineTotalMinor` | `quantity * unitPriceMinor`, calculated by the server. |
 
 ## Public contract
@@ -75,13 +75,13 @@ For the Payments module, Orders exposes an `OrderSettlementPort` implemented by 
 
 Zod schemas are the single source of truth for request validation and inferred types.
 
-| Endpoint | Success | Failure behaviour |
-| --- | --- | --- |
-| `POST /api/v1/orders` | `201` with created order | `400` invalid input; `401` missing session. |
-| `GET /api/v1/orders` | `200` active orders for current merchant | `401` missing session. |
-| `GET /api/v1/orders/:id` | `200` active order | `404` absent, deleted, or outside merchant scope. |
-| `PATCH /api/v1/orders/:id` | `200` updated order | `400` invalid input; `404` inaccessible order; `409` payment-locked order. |
-| `DELETE /api/v1/orders/:id` | `204` after soft delete | `404` inaccessible order; `409` payment-locked order. |
+| Endpoint                    | Success                                  | Failure behaviour                                                          |
+| --------------------------- | ---------------------------------------- | -------------------------------------------------------------------------- |
+| `POST /api/v1/orders`       | `201` with created order                 | `400` invalid input; `401` missing session.                                |
+| `GET /api/v1/orders`        | `200` active orders for current merchant | `401` missing session.                                                     |
+| `GET /api/v1/orders/:id`    | `200` active order                       | `404` absent, deleted, or outside merchant scope.                          |
+| `PATCH /api/v1/orders/:id`  | `200` updated order                      | `400` invalid input; `404` inaccessible order; `409` payment-locked order. |
+| `DELETE /api/v1/orders/:id` | `204` after soft delete                  | `404` inaccessible order; `409` payment-locked order.                      |
 
 Incoming payloads accept customer, due date, and line items only. `merchantId`, totals, status, payment summary, and audit fields are server-owned fields.
 

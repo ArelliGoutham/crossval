@@ -25,20 +25,21 @@
 
 ## File structure
 
-| Path | Responsibility |
-| --- | --- |
-| `src/app/` | Thin App Router pages, route handlers, and route protection adapters. |
-| `src/modules/identity/public.ts` | The only import surface available to other modules. |
-| `src/modules/identity/domain/` | Pure identity types, Zod schemas, errors, and port definitions. |
-| `src/modules/identity/application/` | Sign-up, login, logout, and merchant-resolution use cases. |
-| `src/modules/identity/infrastructure/` | MongoDB repositories, bcrypt, crypto token/hash, clock, and audit adapters. |
-| `src/shared/` | Validated configuration, Mongo client lifecycle, request/response helpers, and shared IDs. |
-| `tests/` | Unit, integration, API, and browser tests, organized by matching module. |
-| `docker-compose.yml` | Local replica-set MongoDB required by later payment transactions. |
+| Path                                   | Responsibility                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `src/app/`                             | Thin App Router pages, route handlers, and route protection adapters.                      |
+| `src/modules/identity/public.ts`       | The only import surface available to other modules.                                        |
+| `src/modules/identity/domain/`         | Pure identity types, Zod schemas, errors, and port definitions.                            |
+| `src/modules/identity/application/`    | Sign-up, login, logout, and merchant-resolution use cases.                                 |
+| `src/modules/identity/infrastructure/` | MongoDB repositories, bcrypt, crypto token/hash, clock, and audit adapters.                |
+| `src/shared/`                          | Validated configuration, Mongo client lifecycle, request/response helpers, and shared IDs. |
+| `tests/`                               | Unit, integration, API, and browser tests, organized by matching module.                   |
+| `docker-compose.yml`                   | Local replica-set MongoDB required by later payment transactions.                          |
 
 ### Task 1: Establish the Next.js, TypeScript, and test foundation
 
 **Files:**
+
 - Create: `package.json`
 - Create: `tsconfig.json`
 - Create: `next.config.ts`
@@ -52,6 +53,7 @@
 - Create: `tests/unit/smoke.test.ts`
 
 **Interfaces:**
+
 - Consumes: no application interfaces.
 - Produces: `npm run dev`, `npm run build`, `npm run lint`, `npm run typecheck`, `npm run test`, and `npm run test:e2e` commands for all later tasks.
 
@@ -110,6 +112,7 @@ git commit -m "chore: establish Next.js application foundation"
 ### Task 2: Add validated runtime configuration and local MongoDB replica set
 
 **Files:**
+
 - Create: `src/shared/config/environment.ts`
 - Create: `src/shared/config/environment.test.ts`
 - Create: `src/shared/mongodb/client.ts`
@@ -120,6 +123,7 @@ git commit -m "chore: establish Next.js application foundation"
 - Modify: `README.md`
 
 **Interfaces:**
+
 - Consumes: the application scripts from Task 1.
 - Produces: `loadEnvironment(input: NodeJS.ProcessEnv): AppEnvironment` and `getMongoClient(): Promise<MongoClient>`.
 
@@ -143,7 +147,9 @@ describe('loadEnvironment', () => {
   });
 
   test('rejects bcrypt cost below twelve', () => {
-    expect(() => loadEnvironment({ ...validEnvironment, BCRYPT_COST: '11' })).toThrow();
+    expect(() =>
+      loadEnvironment({ ...validEnvironment, BCRYPT_COST: '11' }),
+    ).toThrow();
   });
 });
 ```
@@ -184,6 +190,7 @@ git commit -m "chore: add validated configuration and local Mongo replica set"
 ### Task 3: Define identity domain contracts, validation, and errors
 
 **Files:**
+
 - Create: `src/modules/identity/domain/schemas.ts`
 - Create: `src/modules/identity/domain/types.ts`
 - Create: `src/modules/identity/domain/ports.ts`
@@ -192,6 +199,7 @@ git commit -m "chore: add validated configuration and local Mongo replica set"
 - Create: `src/modules/identity/public.ts`
 
 **Interfaces:**
+
 - Consumes: Zod and `AppEnvironment` conventions from Task 2.
 - Produces: `signUpInputSchema`, `loginInputSchema`, `SignUpInput`, `LoginInput`, `AuthenticatedMerchant`, `UserRepository`, `SessionRepository`, `PasswordHasher`, `SessionTokenGenerator`, `Clock`, `AuditLog`, and typed identity errors.
 
@@ -202,14 +210,24 @@ import { expect, test } from 'vitest';
 import { signUpInputSchema } from '@/modules/identity/domain/schemas';
 
 test('normalizes email and accepts a twelve-character password', () => {
-  expect(signUpInputSchema.parse({ email: '  USER@Example.COM ', password: 'correcthorse1' })).toEqual({
+  expect(
+    signUpInputSchema.parse({
+      email: '  USER@Example.COM ',
+      password: 'correcthorse1',
+    }),
+  ).toEqual({
     email: 'user@example.com',
     password: 'correcthorse1',
   });
 });
 
 test('rejects passwords shorter than twelve characters', () => {
-  expect(signUpInputSchema.safeParse({ email: 'user@example.com', password: 'short' }).success).toBe(false);
+  expect(
+    signUpInputSchema.safeParse({
+      email: 'user@example.com',
+      password: 'short',
+    }).success,
+  ).toBe(false);
 });
 ```
 
@@ -233,7 +251,10 @@ export interface UserRepository {
 
 export interface SessionRepository {
   insert(session: NewStoredSession): Promise<void>;
-  findActiveByTokenHash(tokenHash: string, now: Date): Promise<StoredSession | null>;
+  findActiveByTokenHash(
+    tokenHash: string,
+    now: Date,
+  ): Promise<StoredSession | null>;
   revokeByTokenHash(tokenHash: string, revokedAt: Date): Promise<void>;
 }
 ```
@@ -256,6 +277,7 @@ git commit -m "feat: define identity domain contracts"
 ### Task 4: Implement swappable identity infrastructure adapters and audit persistence
 
 **Files:**
+
 - Create: `src/modules/identity/infrastructure/mongo-user-repository.ts`
 - Create: `src/modules/identity/infrastructure/mongo-session-repository.ts`
 - Create: `src/modules/identity/infrastructure/mongo-audit-log.ts`
@@ -266,6 +288,7 @@ git commit -m "feat: define identity domain contracts"
 - Create: `tests/integration/identity/infrastructure.test.ts`
 
 **Interfaces:**
+
 - Consumes: Task 2 Mongo client/configuration and Task 3 ports.
 - Produces: concrete adapters usable only by the identity composition root and `ensureIdentityIndexes(db)`.
 
@@ -275,12 +298,16 @@ git commit -m "feat: define identity domain contracts"
 test('bcrypt adapter never returns the supplied password as its hash', async () => {
   const hash = await passwordHasher.hash('correcthorse1');
   expect(hash).not.toBe('correcthorse1');
-  await expect(passwordHasher.verify('correcthorse1', hash)).resolves.toBe(true);
+  await expect(passwordHasher.verify('correcthorse1', hash)).resolves.toBe(
+    true,
+  );
 });
 
 test('identity indexes enforce unique email and token hash and expire sessions', async () => {
   await ensureIdentityIndexes(testDatabase);
-  await expect(insertSameNormalizedEmailTwice()).rejects.toMatchObject({ code: 11000 });
+  await expect(insertSameNormalizedEmailTwice()).rejects.toMatchObject({
+    code: 11000,
+  });
 });
 ```
 
@@ -312,12 +339,14 @@ git commit -m "feat: add identity persistence and security adapters"
 ### Task 5: Implement and test the identity use cases
 
 **Files:**
+
 - Create: `src/modules/identity/application/identity-service.ts`
 - Create: `src/modules/identity/application/identity-service.test.ts`
 - Create: `src/modules/identity/application/test-doubles.ts`
 - Modify: `src/modules/identity/public.ts`
 
 **Interfaces:**
+
 - Consumes: Task 3 ports/errors and Task 4 adapter behavior.
 - Produces: `IdentityService` implementing `signUp`, `login`, `logout`, and `requireMerchant`.
 
@@ -325,19 +354,33 @@ git commit -m "feat: add identity persistence and security adapters"
 
 ```ts
 test('sign-up creates a merchant-owned user, session, and safe audit event', async () => {
-  const result = await service.signUp({ email: 'merchant@example.com', password: 'correcthorse1' });
-  expect(result.identity).toMatchObject({ merchantId: expect.any(String), userId: expect.any(String) });
-  expect(audit.events).toContainEqual(expect.objectContaining({ type: 'identity.signed_up' }));
+  const result = await service.signUp({
+    email: 'merchant@example.com',
+    password: 'correcthorse1',
+  });
+  expect(result.identity).toMatchObject({
+    merchantId: expect.any(String),
+    userId: expect.any(String),
+  });
+  expect(audit.events).toContainEqual(
+    expect.objectContaining({ type: 'identity.signed_up' }),
+  );
   expect(JSON.stringify(audit.events)).not.toContain('correcthorse1');
 });
 
 test('login presents the same invalid-credentials error for missing user and wrong password', async () => {
-  await expect(service.login({ email: 'none@example.com', password: 'correcthorse1' })).rejects.toMatchObject({ code: 'invalid_credentials' });
-  await expect(service.login({ email: 'merchant@example.com', password: 'wrongpassword' })).rejects.toMatchObject({ code: 'invalid_credentials' });
+  await expect(
+    service.login({ email: 'none@example.com', password: 'correcthorse1' }),
+  ).rejects.toMatchObject({ code: 'invalid_credentials' });
+  await expect(
+    service.login({ email: 'merchant@example.com', password: 'wrongpassword' }),
+  ).rejects.toMatchObject({ code: 'invalid_credentials' });
 });
 
 test('revoked and expired sessions cannot resolve a merchant', async () => {
-  await expect(service.requireMerchant(revokedToken)).rejects.toMatchObject({ code: 'unauthorized' });
+  await expect(service.requireMerchant(revokedToken)).rejects.toMatchObject({
+    code: 'unauthorized',
+  });
 });
 ```
 
@@ -369,6 +412,7 @@ git commit -m "feat: add identity authentication use cases"
 ### Task 6: Add HTTP adapters, composition root, cookies, and API contract tests
 
 **Files:**
+
 - Create: `src/modules/identity/infrastructure/create-identity-module.ts`
 - Create: `src/shared/http/api-response.ts`
 - Create: `src/shared/http/request-context.ts`
@@ -380,6 +424,7 @@ git commit -m "feat: add identity authentication use cases"
 - Create: `tests/api/auth.test.ts`
 
 **Interfaces:**
+
 - Consumes: `IdentityService` from Task 5 and public Zod schemas from Task 3.
 - Produces: `/api/v1/auth/sign-up`, `/login`, `/logout`, and `/me` with approved response/cookie behavior.
 
@@ -387,20 +432,38 @@ git commit -m "feat: add identity authentication use cases"
 
 ```ts
 test('sign-up returns 201 with an HttpOnly SameSite=Lax session cookie', async () => {
-  const response = await request('POST', '/api/v1/auth/sign-up', validCredentials);
+  const response = await request(
+    'POST',
+    '/api/v1/auth/sign-up',
+    validCredentials,
+  );
   expect(response.status).toBe(201);
   expect(response.headers.get('set-cookie')).toContain('HttpOnly');
   expect(response.headers.get('set-cookie')).toContain('SameSite=Lax');
-  expect(await response.json()).toEqual({ data: { user: expect.objectContaining({ email: 'merchant@example.com' }) } });
+  expect(await response.json()).toEqual({
+    data: { user: expect.objectContaining({ email: 'merchant@example.com' }) },
+  });
 });
 
 test('login does not reveal whether an email exists', async () => {
-  expect(await login('missing@example.com', 'correcthorse1')).toMatchObject({ status: 401, body: { error: { code: 'INVALID_CREDENTIALS' } } });
-  expect(await login('merchant@example.com', 'wrongpassword')).toMatchObject({ status: 401, body: { error: { code: 'INVALID_CREDENTIALS' } } });
+  expect(await login('missing@example.com', 'correcthorse1')).toMatchObject({
+    status: 401,
+    body: { error: { code: 'INVALID_CREDENTIALS' } },
+  });
+  expect(await login('merchant@example.com', 'wrongpassword')).toMatchObject({
+    status: 401,
+    body: { error: { code: 'INVALID_CREDENTIALS' } },
+  });
 });
 
 test('unsafe requests with a foreign Origin are rejected', async () => {
-  expect((await request('POST', '/api/v1/auth/logout', undefined, { Origin: 'https://attacker.example' })).status).toBe(400);
+  expect(
+    (
+      await request('POST', '/api/v1/auth/logout', undefined, {
+        Origin: 'https://attacker.example',
+      })
+    ).status,
+  ).toBe(400);
 });
 ```
 
@@ -434,6 +497,7 @@ git commit -m "feat: expose versioned authentication API"
 ### Task 7: Add authentication screens and server-side route protection
 
 **Files:**
+
 - Create: `src/app/(auth)/login/page.tsx`
 - Create: `src/app/(auth)/sign-up/page.tsx`
 - Create: `src/app/(app)/dashboard/page.tsx`
@@ -444,6 +508,7 @@ git commit -m "feat: expose versioned authentication API"
 - Create: `tests/e2e/auth.spec.ts`
 
 **Interfaces:**
+
 - Consumes: API contracts from Task 6; the protected layout consumes only `requireMerchant` from identity public API.
 - Produces: `/login`, `/sign-up`, protected `/dashboard`, protected `/orders/:id`, and redirect behavior.
 
@@ -459,7 +524,9 @@ test('credentials form presents validation feedback before submitting an invalid
 ```
 
 ```ts
-test('unauthenticated visitors are redirected to login and authenticated users land on dashboard', async ({ page }) => {
+test('unauthenticated visitors are redirected to login and authenticated users land on dashboard', async ({
+  page,
+}) => {
   await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/login/);
   await signUpThroughPage(page, 'merchant@example.com', 'correcthorse1');
@@ -495,17 +562,22 @@ git commit -m "feat: add authentication screens and route protection"
 ### Task 8: Verify the authentication vertical slice and document its local workflow
 
 **Files:**
+
 - Modify: `README.md`
 - Modify: `docs/superpowers/specs/2026-08-08-01-authentication-design.md` only if behavior required by the implementation differs from its approved text; otherwise do not modify it.
 
 **Interfaces:**
+
 - Consumes: the complete Tasks 1–7 vertical slice.
 - Produces: repeatable local verification evidence and accurate developer setup documentation.
 
 - [ ] **Step 1: Write a failing end-to-end regression case**
 
 ```ts
-test('logout clears access to protected pages and API identity', async ({ page, request }) => {
+test('logout clears access to protected pages and API identity', async ({
+  page,
+  request,
+}) => {
   await signUpThroughPage(page, 'merchant@example.com', 'correcthorse1');
   await page.getByRole('button', { name: 'Log out' }).click();
   await expect(page).toHaveURL(/\/login/);

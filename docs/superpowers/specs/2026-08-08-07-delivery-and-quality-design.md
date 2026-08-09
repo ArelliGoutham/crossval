@@ -17,12 +17,12 @@ Define the quality gates, local development environment, configuration contract,
 
 Required test layers:
 
-| Layer | Evidence |
-| --- | --- |
-| Domain unit tests | Money, totals, status precedence, due-date semantics, validation. |
-| Module and integration tests | Authentication, ownership isolation, order locking, payment transactions, idempotency, audit events. |
-| API contract tests | `/api/v1` validation, errors, auth, CSRF-origin checks, and response envelopes. |
-| End-to-end tests | Sign-up/login, protected dashboard, order creation, partial/full payment, and over-payment rejection. |
+| Layer                        | Evidence                                                                                              |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Domain unit tests            | Money, totals, status precedence, due-date semantics, validation.                                     |
+| Module and integration tests | Authentication, ownership isolation, order locking, payment transactions, idempotency, audit events.  |
+| API contract tests           | `/api/v1` validation, errors, auth, CSRF-origin checks, and response envelopes.                       |
+| End-to-end tests             | Sign-up/login, protected dashboard, order creation, partial/full payment, and over-payment rejection. |
 
 The end-to-end scenario must include the assignment flow: create a $1,000 order, record $400, record $600, then reject a further $1 payment.
 
@@ -38,13 +38,13 @@ Local development and tests select their databases through environment values. T
 
 Configuration is externalized and validated once at process startup with Zod.
 
-| Variable | Purpose |
-| --- | --- |
-| `MONGODB_URI` | Local replica-set or Atlas connection URI. |
-| `MONGODB_DB_NAME` | Application database name. |
-| `APP_ORIGIN` | Canonical application origin for cookies and origin validation. |
-| `SESSION_TTL_DAYS` | Session lifetime. |
-| `BCRYPT_COST` | bcrypt work factor; production baseline is 12. |
+| Variable           | Purpose                                                         |
+| ------------------ | --------------------------------------------------------------- |
+| `MONGODB_URI`      | Local replica-set or Atlas connection URI.                      |
+| `MONGODB_DB_NAME`  | Application database name.                                      |
+| `APP_ORIGIN`       | Canonical application origin for cookies and origin validation. |
+| `SESSION_TTL_DAYS` | Session lifetime.                                               |
+| `BCRYPT_COST`      | bcrypt work factor; production baseline is 12.                  |
 
 `.env.example` documents variable names and safe placeholder values. `.env.local` and all secrets are Git-ignored. Production configuration is supplied through Vercel environment settings, with `MONGODB_URI` targeting MongoDB Atlas.
 

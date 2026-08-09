@@ -26,15 +26,15 @@ This module owns dashboard and detail query composition plus UI-facing read mode
 
 `getDashboardOrders(merchant, filters, asOfUtcDate)` returns one row per active merchant order:
 
-| Field | Meaning |
-| --- | --- |
-| `id` | Order identifier. |
-| `customer` | Customer name. |
-| `status` | Current derived settlement status. |
-| `totalMinor` | Order total. |
-| `amountPaidMinor` | Payments-owned order summary. |
-| `amountDueMinor` | Derived total minus paid amount. |
-| `dueDate` | UTC date-only due date. |
+| Field             | Meaning                            |
+| ----------------- | ---------------------------------- |
+| `id`              | Order identifier.                  |
+| `customer`        | Customer name.                     |
+| `status`          | Current derived settlement status. |
+| `totalMinor`      | Order total.                       |
+| `amountPaidMinor` | Payments-owned order summary.      |
+| `amountDueMinor`  | Derived total minus paid amount.   |
+| `dueDate`         | UTC date-only due date.            |
 
 `filters.status` accepts `pending`, `partially_paid`, `paid`, `overdue`, or no filter for all statuses.
 

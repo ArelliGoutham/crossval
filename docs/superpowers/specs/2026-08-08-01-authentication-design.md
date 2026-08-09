@@ -26,23 +26,23 @@ This module owns sign-up, login, logout, and current-session lookup. It does not
 
 ### User
 
-| Field | Meaning |
-| --- | --- |
-| `id` | Immutable user identifier. |
-| `merchantId` | Tenant identifier used for all ownership checks. |
-| `email` | Trimmed, lower-cased, unique email address. |
-| `passwordHash` | bcrypt hash; never returned, logged, or placed in a cookie. |
-| `createdAt` / `updatedAt` | Audit timestamps. |
+| Field                     | Meaning                                                     |
+| ------------------------- | ----------------------------------------------------------- |
+| `id`                      | Immutable user identifier.                                  |
+| `merchantId`              | Tenant identifier used for all ownership checks.            |
+| `email`                   | Trimmed, lower-cased, unique email address.                 |
+| `passwordHash`            | bcrypt hash; never returned, logged, or placed in a cookie. |
+| `createdAt` / `updatedAt` | Audit timestamps.                                           |
 
 ### Session
 
-| Field | Meaning |
-| --- | --- |
-| `id` | Immutable session identifier. |
-| `tokenHash` | SHA-256 hash of the opaque browser token; unique. |
-| `userId` / `merchantId` | The authenticated identity. |
-| `expiresAt` | Expiry time; indexed for expiry cleanup. |
-| `createdAt` / `revokedAt` | Session audit fields. |
+| Field                     | Meaning                                           |
+| ------------------------- | ------------------------------------------------- |
+| `id`                      | Immutable session identifier.                     |
+| `tokenHash`               | SHA-256 hash of the opaque browser token; unique. |
+| `userId` / `merchantId`   | The authenticated identity.                       |
+| `expiresAt`               | Expiry time; indexed for expiry cleanup.          |
+| `createdAt` / `revokedAt` | Session audit fields.                             |
 
 `users.email` and `sessions.tokenHash` require unique indexes. `sessions.expiresAt` requires a TTL index.
 
@@ -70,12 +70,12 @@ MongoDB, bcrypt, cookies, and Next.js route handlers are adapters. Orders, Payme
 
 Zod schemas are the single source of truth for email/password request validation and inferred types.
 
-| Endpoint | Success | Failure behaviour |
-| --- | --- | --- |
-| `POST /api/v1/auth/sign-up` | `201`, session cookie set | `400` invalid input; `409` duplicate email. |
-| `POST /api/v1/auth/login` | `200`, session cookie set | `400` invalid input; generic `401` invalid credentials. |
-| `POST /api/v1/auth/logout` | `204`, session revoked and cookie cleared | Safe to call when no valid session exists. |
-| `GET /api/v1/auth/me` | `200` authenticated identity | `401` absent, expired, or revoked session. |
+| Endpoint                    | Success                                   | Failure behaviour                                       |
+| --------------------------- | ----------------------------------------- | ------------------------------------------------------- |
+| `POST /api/v1/auth/sign-up` | `201`, session cookie set                 | `400` invalid input; `409` duplicate email.             |
+| `POST /api/v1/auth/login`   | `200`, session cookie set                 | `400` invalid input; generic `401` invalid credentials. |
+| `POST /api/v1/auth/logout`  | `204`, session revoked and cookie cleared | Safe to call when no valid session exists.              |
+| `GET /api/v1/auth/me`       | `200` authenticated identity              | `401` absent, expired, or revoked session.              |
 
 Passwords must be at least 12 characters. Errors never reveal whether a login email exists, and responses never expose password hashes or session tokens.
 

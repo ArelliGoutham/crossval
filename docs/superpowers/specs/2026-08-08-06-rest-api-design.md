@@ -18,19 +18,19 @@ All public routes use the `/api/v1` prefix. Additive optional fields may be adde
 
 ## Endpoints
 
-| Method | Path | Delegates to |
-| --- | --- | --- |
-| `POST` | `/api/v1/auth/sign-up` | Authentication sign-up. |
-| `POST` | `/api/v1/auth/login` | Authentication login. |
-| `POST` | `/api/v1/auth/logout` | Authentication logout. |
-| `GET` | `/api/v1/auth/me` | Authentication current identity. |
-| `GET` | `/api/v1/orders?status=` | Dashboard order-list query. |
-| `POST` | `/api/v1/orders` | Orders creation. |
-| `GET` | `/api/v1/orders/:id` | Dashboard order-detail query. |
-| `PATCH` | `/api/v1/orders/:id` | Orders update. |
-| `DELETE` | `/api/v1/orders/:id` | Orders soft deletion. |
-| `GET` | `/api/v1/orders/:id/payments` | Payments history. |
-| `POST` | `/api/v1/orders/:id/payments` | Payments recording. |
+| Method   | Path                          | Delegates to                     |
+| -------- | ----------------------------- | -------------------------------- |
+| `POST`   | `/api/v1/auth/sign-up`        | Authentication sign-up.          |
+| `POST`   | `/api/v1/auth/login`          | Authentication login.            |
+| `POST`   | `/api/v1/auth/logout`         | Authentication logout.           |
+| `GET`    | `/api/v1/auth/me`             | Authentication current identity. |
+| `GET`    | `/api/v1/orders?status=`      | Dashboard order-list query.      |
+| `POST`   | `/api/v1/orders`              | Orders creation.                 |
+| `GET`    | `/api/v1/orders/:id`          | Dashboard order-detail query.    |
+| `PATCH`  | `/api/v1/orders/:id`          | Orders update.                   |
+| `DELETE` | `/api/v1/orders/:id`          | Orders soft deletion.            |
+| `GET`    | `/api/v1/orders/:id/payments` | Payments history.                |
+| `POST`   | `/api/v1/orders/:id/payments` | Payments recording.              |
 
 ## Response contract
 
@@ -57,14 +57,14 @@ Errors use:
 
 ## Error mapping
 
-| Status | Meaning |
-| --- | --- |
-| `400` | Zod validation failure. |
-| `401` | Missing, expired, revoked, or invalid session. |
-| `404` | Absent, deleted, or inaccessible resource. |
-| `409` | Payment-locked order, idempotency conflict, or unresolved in-progress idempotency key. |
-| `422` | Over-payment; details include the maximum allowed amount. |
-| `500` | Safe generic internal-error response; detailed cause is logged internally. |
+| Status | Meaning                                                                                |
+| ------ | -------------------------------------------------------------------------------------- |
+| `400`  | Zod validation failure.                                                                |
+| `401`  | Missing, expired, revoked, or invalid session.                                         |
+| `404`  | Absent, deleted, or inaccessible resource.                                             |
+| `409`  | Payment-locked order, idempotency conflict, or unresolved in-progress idempotency key. |
+| `422`  | Over-payment; details include the maximum allowed amount.                              |
+| `500`  | Safe generic internal-error response; detailed cause is logged internally.             |
 
 ## Security and validation
 

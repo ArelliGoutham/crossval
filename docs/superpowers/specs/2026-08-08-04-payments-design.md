@@ -26,25 +26,25 @@ This module owns payment recording, payment history, idempotency, order-balance 
 
 ### Payment
 
-| Field | Meaning |
-| --- | --- |
-| `id` | Immutable payment identifier. |
-| `merchantId` / `orderId` | Tenant and parent order ownership. |
-| `amountMinor` | Positive integer payment amount. |
-| `paymentDate` | UTC date payment was made. |
-| `note` | Optional trimmed note, maximum 1,000 characters. |
-| `idempotencyKey` | Key for this payment command. |
-| `createdBy` / `createdAt` | Actor and audit timestamp. |
+| Field                     | Meaning                                          |
+| ------------------------- | ------------------------------------------------ |
+| `id`                      | Immutable payment identifier.                    |
+| `merchantId` / `orderId`  | Tenant and parent order ownership.               |
+| `amountMinor`             | Positive integer payment amount.                 |
+| `paymentDate`             | UTC date payment was made.                       |
+| `note`                    | Optional trimmed note, maximum 1,000 characters. |
+| `idempotencyKey`          | Key for this payment command.                    |
+| `createdBy` / `createdAt` | Actor and audit timestamp.                       |
 
 ### Idempotency record
 
-| Field | Meaning |
-| --- | --- |
-| `merchantId`, `operation`, `key` | Unique command identity. |
-| `requestHash` | Hash of normalized request input. |
-| `outcome` | `succeeded` or `rejected`. |
-| `response` | Sanitized stored HTTP outcome for safe replay. |
-| `createdAt` / `completedAt` | Command timestamps. |
+| Field                            | Meaning                                        |
+| -------------------------------- | ---------------------------------------------- |
+| `merchantId`, `operation`, `key` | Unique command identity.                       |
+| `requestHash`                    | Hash of normalized request input.              |
+| `outcome`                        | `succeeded` or `rejected`.                     |
+| `response`                       | Sanitized stored HTTP outcome for safe replay. |
+| `createdAt` / `completedAt`      | Command timestamps.                            |
 
 Indexes:
 
@@ -63,10 +63,10 @@ The module depends only on ports: `OrderSettlementPort`, `PaymentRepository`, `I
 
 ## HTTP boundary
 
-| Endpoint | Success | Failure behaviour |
-| --- | --- | --- |
+| Endpoint                           | Success                                    | Failure behaviour                                                                                                                        |
+| ---------------------------------- | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | `POST /api/v1/orders/:id/payments` | `201` new payment; `200` idempotent replay | `400` invalid input; `401` missing session; `404` inaccessible order; `409` key reuse or unresolved in-progress key; `422` over-payment. |
-| `GET /api/v1/orders/:id/payments` | `200` payment history | `401` missing session; `404` inaccessible order. |
+| `GET /api/v1/orders/:id/payments`  | `200` payment history                      | `401` missing session; `404` inaccessible order.                                                                                         |
 
 Zod validates body and header values. The body accepts amount, payment date, and optional note. The authenticated session supplies merchant and actor identity.
 

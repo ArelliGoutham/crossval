@@ -24,20 +24,20 @@ This module owns the pure status policy. It does not persist status, write audit
 
 `evaluateSettlement(input)` accepts:
 
-| Field | Meaning |
-| --- | --- |
-| `totalMinor` | Positive integer order total. |
-| `amountPaidMinor` | Integer cumulative accepted payment amount. |
-| `dueDate` | ISO UTC calendar date: `YYYY-MM-DD`. |
-| `asOfUtcDate` | ISO UTC calendar date supplied by a caller or `Clock`. |
+| Field             | Meaning                                                |
+| ----------------- | ------------------------------------------------------ |
+| `totalMinor`      | Positive integer order total.                          |
+| `amountPaidMinor` | Integer cumulative accepted payment amount.            |
+| `dueDate`         | ISO UTC calendar date: `YYYY-MM-DD`.                   |
+| `asOfUtcDate`     | ISO UTC calendar date supplied by a caller or `Clock`. |
 
 It returns:
 
-| Field | Meaning |
-| --- | --- |
-| `status` | `pending`, `partially_paid`, `paid`, or `overdue`. |
-| `amountDueMinor` | `totalMinor - amountPaidMinor`. |
-| `isOverdue` | Whether status is `overdue`. |
+| Field            | Meaning                                            |
+| ---------------- | -------------------------------------------------- |
+| `status`         | `pending`, `partially_paid`, `paid`, or `overdue`. |
+| `amountDueMinor` | `totalMinor - amountPaidMinor`.                    |
+| `isOverdue`      | Whether status is `overdue`.                       |
 
 The policy is:
 

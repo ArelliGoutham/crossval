@@ -16,43 +16,43 @@
 
 ### Module 03 — Order Status (pure, no infrastructure)
 
-| File | Responsibility |
-| --- | --- |
-| `src/modules/order-status/domain/schemas.ts` | Zod schema for `SettlementInput`, exported `SettlementStatus` literal union |
-| `src/modules/order-status/domain/schemas.test.ts` | Unit tests for status precedence and invalid input rejection |
-| `src/modules/order-status/domain/evaluate.ts` | Pure `evaluateSettlement(input)` function |
-| `src/modules/order-status/domain/evaluate.test.ts` | Unit tests for all 7 acceptance criteria |
-| `src/modules/order-status/public.ts` | Exports `evaluateSettlement`, `SettlementInput`, `SettlementResult`, `SettlementStatus` |
+| File                                               | Responsibility                                                                          |
+| -------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `src/modules/order-status/domain/schemas.ts`       | Zod schema for `SettlementInput`, exported `SettlementStatus` literal union             |
+| `src/modules/order-status/domain/schemas.test.ts`  | Unit tests for status precedence and invalid input rejection                            |
+| `src/modules/order-status/domain/evaluate.ts`      | Pure `evaluateSettlement(input)` function                                               |
+| `src/modules/order-status/domain/evaluate.test.ts` | Unit tests for all 7 acceptance criteria                                                |
+| `src/modules/order-status/public.ts`               | Exports `evaluateSettlement`, `SettlementInput`, `SettlementResult`, `SettlementStatus` |
 
 ### Module 02 — Orders (domain, application, infrastructure, public contract)
 
-| File | Responsibility |
-| --- | --- |
-| `src/modules/orders/domain/types.ts` | `StoredOrder`, `NewStoredOrder`, `StoredLineItem`, `LineItemInput`, `OrderResult`, `OrderSummary`, use-case interfaces |
-| `src/modules/orders/domain/errors.ts` | `OrderError` class with `OrderErrorCode` |
-| `src/modules/orders/domain/schemas.ts` | Zod schemas for create/update input, line item input, order query filters |
-| `src/modules/orders/domain/schemas.test.ts` | Unit tests for schema validation |
-| `src/modules/orders/domain/ports.ts` | `OrderRepository`, `OrderSettlementPort`, `Clock`, `IdGenerator`, `AuditLog` ports + `OrderAuditEvent` |
-| `src/modules/orders/domain/totals.ts` | Pure `computeLineTotal` and `computeSubtotal` functions |
-| `src/modules/orders/domain/totals.test.ts` | Unit tests for money computation |
-| `src/modules/orders/application/order-service.ts` | `OrderService` implementing 5 use cases + `OrderSettlementPort` |
-| `src/modules/orders/application/order-service.test.ts` | Unit tests for service logic with in-memory test doubles |
-| `src/modules/orders/application/test-doubles.ts` | In-memory repository, audit log, clock, id generator, token hasher stubs |
-| `src/modules/orders/infrastructure/mongo-order-repository.ts` | MongoDB `OrderRepository` implementation |
-| `src/modules/orders/infrastructure/mongo-order-settlement-port.ts` | MongoDB `OrderSettlementPort` implementation (conditional reserve) |
-| `src/modules/orders/infrastructure/mongo-order-audit-log.ts` | MongoDB audit log for order events |
-| `src/modules/orders/infrastructure/ensure-indexes.ts` | Create MongoDB indexes for orders collection |
-| `src/modules/orders/infrastructure/create-orders-module.ts` | Factory that wires infrastructure adapters |
-| `src/modules/orders/public.ts` | Public contract: use-case interfaces, input/output types, errors, `composeOrdersService` factory |
+| File                                                               | Responsibility                                                                                                         |
+| ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| `src/modules/orders/domain/types.ts`                               | `StoredOrder`, `NewStoredOrder`, `StoredLineItem`, `LineItemInput`, `OrderResult`, `OrderSummary`, use-case interfaces |
+| `src/modules/orders/domain/errors.ts`                              | `OrderError` class with `OrderErrorCode`                                                                               |
+| `src/modules/orders/domain/schemas.ts`                             | Zod schemas for create/update input, line item input, order query filters                                              |
+| `src/modules/orders/domain/schemas.test.ts`                        | Unit tests for schema validation                                                                                       |
+| `src/modules/orders/domain/ports.ts`                               | `OrderRepository`, `OrderSettlementPort`, `Clock`, `IdGenerator`, `AuditLog` ports + `OrderAuditEvent`                 |
+| `src/modules/orders/domain/totals.ts`                              | Pure `computeLineTotal` and `computeSubtotal` functions                                                                |
+| `src/modules/orders/domain/totals.test.ts`                         | Unit tests for money computation                                                                                       |
+| `src/modules/orders/application/order-service.ts`                  | `OrderService` implementing 5 use cases + `OrderSettlementPort`                                                        |
+| `src/modules/orders/application/order-service.test.ts`             | Unit tests for service logic with in-memory test doubles                                                               |
+| `src/modules/orders/application/test-doubles.ts`                   | In-memory repository, audit log, clock, id generator, token hasher stubs                                               |
+| `src/modules/orders/infrastructure/mongo-order-repository.ts`      | MongoDB `OrderRepository` implementation                                                                               |
+| `src/modules/orders/infrastructure/mongo-order-settlement-port.ts` | MongoDB `OrderSettlementPort` implementation (conditional reserve)                                                     |
+| `src/modules/orders/infrastructure/mongo-order-audit-log.ts`       | MongoDB audit log for order events                                                                                     |
+| `src/modules/orders/infrastructure/ensure-indexes.ts`              | Create MongoDB indexes for orders collection                                                                           |
+| `src/modules/orders/infrastructure/create-orders-module.ts`        | Factory that wires infrastructure adapters                                                                             |
+| `src/modules/orders/public.ts`                                     | Public contract: use-case interfaces, input/output types, errors, `composeOrdersService` factory                       |
 
 ### Composition & HTTP
 
-| File | Responsibility |
-| --- | --- |
-| `src/app/composition/orders-api-errors.ts` | Maps `OrderError` codes to HTTP responses |
-| `src/app/api/v1/orders/route.ts` | `GET` (list) + `POST` (create) |
-| `src/app/api/v1/orders/[id]/route.ts` | `GET` (detail) + `PATCH` (update) + `DELETE` (soft delete) |
-| `tests/api/orders.test.ts` | API contract tests for all 5 endpoints |
+| File                                              | Responsibility                                                           |
+| ------------------------------------------------- | ------------------------------------------------------------------------ |
+| `src/app/composition/orders-api-errors.ts`        | Maps `OrderError` codes to HTTP responses                                |
+| `src/app/api/v1/orders/route.ts`                  | `GET` (list) + `POST` (create)                                           |
+| `src/app/api/v1/orders/[id]/route.ts`             | `GET` (detail) + `PATCH` (update) + `DELETE` (soft delete)               |
+| `tests/api/orders.test.ts`                        | API contract tests for all 5 endpoints                                   |
 | `tests/integration/orders/infrastructure.test.ts` | Integration tests for Mongo order repository + settlement port + indexes |
 
 ---
@@ -60,6 +60,7 @@
 ## Task 1: Order Status — Zod schema and types
 
 **Files:**
+
 - Create: `src/modules/order-status/domain/schemas.ts`
 - Create: `src/modules/order-status/domain/schemas.test.ts`
 
@@ -175,7 +176,10 @@ const positiveIntMinorSchema = z
   .int()
   .positive('Value must be a positive integer.');
 
-const amountPaidSchema = z.number().int().min(0, 'Amount paid must be a non-negative integer.');
+const amountPaidSchema = z
+  .number()
+  .int()
+  .min(0, 'Amount paid must be a non-negative integer.');
 
 const dateOnlySchema = z
   .string()
@@ -217,6 +221,7 @@ git commit -m "feat: define order status settlement schemas"
 ## Task 2: Order Status — evaluateSettlement pure function
 
 **Files:**
+
 - Create: `src/modules/order-status/domain/evaluate.ts`
 - Create: `src/modules/order-status/domain/evaluate.test.ts`
 
@@ -446,6 +451,7 @@ git commit -m "feat: add pure order status evaluator"
 ## Task 3: Order Status — public contract
 
 **Files:**
+
 - Create: `src/modules/order-status/public.ts`
 
 - [ ] **Step 1: Create the public contract**
@@ -480,6 +486,7 @@ git commit -m "feat: expose order status public contract"
 ## Task 4: Orders — domain types and errors
 
 **Files:**
+
 - Create: `src/modules/orders/domain/types.ts`
 - Create: `src/modules/orders/domain/errors.ts`
 
@@ -489,9 +496,7 @@ Create `src/modules/orders/domain/errors.ts`:
 
 ```typescript
 export type OrderErrorCode =
-  | 'not_found'
-  | 'payment_locked'
-  | 'validation_failed';
+  'not_found' | 'payment_locked' | 'validation_failed';
 
 export class OrderError extends Error {
   readonly code: OrderErrorCode;
@@ -615,10 +620,7 @@ export interface UpdateOrderUseCase {
 }
 
 export interface DeleteOrderUseCase {
-  deleteOrder(
-    merchant: AuthenticatedMerchant,
-    orderId: string,
-  ): Promise<void>;
+  deleteOrder(merchant: AuthenticatedMerchant, orderId: string): Promise<void>;
 }
 ```
 
@@ -639,6 +641,7 @@ git commit -m "feat: define orders domain types and errors"
 ## Task 5: Orders — Zod schemas
 
 **Files:**
+
 - Create: `src/modules/orders/domain/schemas.ts`
 - Create: `src/modules/orders/domain/schemas.test.ts`
 
@@ -694,9 +697,7 @@ describe('createOrderInputSchema', () => {
     const result = createOrderInputSchema.safeParse({
       customer: 'Acme Corp',
       dueDate: '2026-08-15',
-      lineItems: [
-        { description: '', quantity: 2, unitPriceMinor: 50000 },
-      ],
+      lineItems: [{ description: '', quantity: 2, unitPriceMinor: 50000 }],
     });
 
     expect(result.success).toBe(false);
@@ -730,9 +731,7 @@ describe('createOrderInputSchema', () => {
     const result = createOrderInputSchema.safeParse({
       customer: 'Acme Corp',
       dueDate: '2026-08-15',
-      lineItems: [
-        { description: 'Widget', quantity: 2, unitPriceMinor: 0 },
-      ],
+      lineItems: [{ description: 'Widget', quantity: 2, unitPriceMinor: 0 }],
     });
 
     expect(result.success).toBe(false);
@@ -878,9 +877,7 @@ export const updateOrderInputSchema = z
   });
 
 export const listOrdersQuerySchema = z.object({
-  status: z
-    .enum(['pending', 'partially_paid', 'paid', 'overdue'])
-    .optional(),
+  status: z.enum(['pending', 'partially_paid', 'paid', 'overdue']).optional(),
 });
 
 export type CreateOrderInput = z.infer<typeof createOrderInputSchema>;
@@ -905,6 +902,7 @@ git commit -m "feat: define order validation schemas"
 ## Task 6: Orders — pure totals computation
 
 **Files:**
+
 - Create: `src/modules/orders/domain/totals.ts`
 - Create: `src/modules/orders/domain/totals.test.ts`
 
@@ -988,6 +986,7 @@ git commit -m "feat: add pure order totals computation"
 ## Task 7: Orders — domain ports
 
 **Files:**
+
 - Create: `src/modules/orders/domain/ports.ts`
 
 - [ ] **Step 1: Create the ports file**
@@ -995,17 +994,15 @@ git commit -m "feat: add pure order totals computation"
 Create `src/modules/orders/domain/ports.ts`:
 
 ```typescript
-import type { NewStoredOrder, StoredOrder } from '@/modules/orders/domain/types';
+import type {
+  NewStoredOrder,
+  StoredOrder,
+} from '@/modules/orders/domain/types';
 
 export interface OrderRepository {
   insert(order: NewStoredOrder): Promise<StoredOrder>;
-  findById(
-    merchantId: string,
-    orderId: string,
-  ): Promise<StoredOrder | null>;
-  listActive(
-    merchantId: string,
-  ): Promise<readonly StoredOrder[]>;
+  findById(merchantId: string, orderId: string): Promise<StoredOrder | null>;
+  listActive(merchantId: string): Promise<readonly StoredOrder[]>;
   update(
     merchantId: string,
     orderId: string,
@@ -1078,6 +1075,7 @@ git commit -m "feat: define orders domain ports"
 ## Task 8: Orders — in-memory test doubles
 
 **Files:**
+
 - Create: `src/modules/orders/application/test-doubles.ts`
 
 - [ ] **Step 1: Create the test doubles**
@@ -1121,9 +1119,7 @@ export class InMemoryOrderRepository implements OrderRepository {
     );
   }
 
-  async listActive(
-    merchantId: string,
-  ): Promise<readonly StoredOrder[]> {
+  async listActive(merchantId: string): Promise<readonly StoredOrder[]> {
     return this.orders.filter(
       (order) => order.merchantId === merchantId && order.deletedAt === null,
     );
@@ -1143,9 +1139,7 @@ export class InMemoryOrderRepository implements OrderRepository {
   ): Promise<StoredOrder | null> {
     const order = this.orders.find(
       (o) =>
-        o.id === orderId &&
-        o.merchantId === merchantId &&
-        o.deletedAt === null,
+        o.id === orderId && o.merchantId === merchantId && o.deletedAt === null,
     );
 
     if (order === undefined) {
@@ -1168,9 +1162,7 @@ export class InMemoryOrderRepository implements OrderRepository {
   ): Promise<StoredOrder | null> {
     const order = this.orders.find(
       (o) =>
-        o.id === orderId &&
-        o.merchantId === merchantId &&
-        o.deletedAt === null,
+        o.id === orderId && o.merchantId === merchantId && o.deletedAt === null,
     );
 
     if (order === undefined) {
@@ -1244,6 +1236,7 @@ git commit -m "feat: add orders in-memory test doubles"
 ## Task 9: Orders — OrderService application logic (TDD)
 
 **Files:**
+
 - Create: `src/modules/orders/application/order-service.test.ts`
 - Create: `src/modules/orders/application/order-service.ts`
 
@@ -1280,11 +1273,7 @@ function createService() {
   const orders = new InMemoryOrderRepository();
   const audit = new InMemoryAuditLog();
   const clock = new FixedClock(NOW);
-  const ids = new StubIdGenerator([
-    'order-1',
-    'line-1',
-    'line-2',
-  ]);
+  const ids = new StubIdGenerator(['order-1', 'line-1', 'line-2']);
 
   const service = new OrderService({
     orders,
@@ -1356,7 +1345,7 @@ describe('OrderService.getOrder', () => {
     expect(result.status).toBe('pending');
   });
 
-  test('throws not_found for another merchant\'s order', async () => {
+  test("throws not_found for another merchant's order", async () => {
     const { service } = createService();
 
     const created = await service.createOrder(MERCHANT, {
@@ -1472,7 +1461,7 @@ describe('OrderService.updateOrder', () => {
     ).rejects.toMatchObject({ code: 'payment_locked' });
   });
 
-  test('throws not_found for another merchant\'s order', async () => {
+  test("throws not_found for another merchant's order", async () => {
     const { service } = createService();
 
     const created = await service.createOrder(MERCHANT, {
@@ -1582,14 +1571,13 @@ import {
   computeLineTotal,
   computeSubtotal,
 } from '@/modules/orders/domain/totals';
+import type { AuthenticatedMerchant } from '@/modules/identity/public';
 import type {
-  AuthenticatedMerchant,
-} from '@/modules/identity/public';
-import type { OrderResult, OrderSummary, StoredLineItem } from '@/modules/orders/domain/types';
-import {
-  NewStoredOrder,
-  StoredOrder,
+  OrderResult,
+  OrderSummary,
+  StoredLineItem,
 } from '@/modules/orders/domain/types';
+import { NewStoredOrder, StoredOrder } from '@/modules/orders/domain/types';
 import { evaluateSettlement } from '@/modules/order-status/public';
 
 const NOT_FOUND_ERROR = new OrderError('not_found');
@@ -1736,18 +1724,14 @@ export class OrderService {
       changedFields.push('lineItems');
     }
 
-    const updated = await this.#orders.update(
-      merchant.merchantId,
-      orderId,
-      {
-        customer,
-        dueDate,
-        lineItems,
-        subtotalMinor,
-        totalMinor,
-        updatedAt: now,
-      },
-    );
+    const updated = await this.#orders.update(merchant.merchantId, orderId, {
+      customer,
+      dueDate,
+      lineItems,
+      subtotalMinor,
+      totalMinor,
+      updatedAt: now,
+    });
 
     if (updated === null) {
       throw NOT_FOUND_ERROR;
@@ -1868,6 +1852,7 @@ git commit -m "feat: add order service application logic"
 ## Task 10: Orders — public contract
 
 **Files:**
+
 - Create: `src/modules/orders/public.ts`
 
 - [ ] **Step 1: Create the public contract**
@@ -1928,6 +1913,7 @@ git commit -m "feat: expose orders public contract"
 ## Task 11: Orders — MongoDB infrastructure adapters
 
 **Files:**
+
 - Create: `src/modules/orders/infrastructure/mongo-order-repository.ts`
 - Create: `src/modules/orders/infrastructure/mongo-order-audit-log.ts`
 - Create: `src/modules/orders/infrastructure/mongo-order-settlement-port.ts`
@@ -2012,9 +1998,7 @@ export class MongoOrderRepository implements OrderRepository {
     return document === null ? null : toStoredOrder(document);
   }
 
-  async listActive(
-    merchantId: string,
-  ): Promise<readonly StoredOrder[]> {
+  async listActive(merchantId: string): Promise<readonly StoredOrder[]> {
     const cursor = this.#collection.find(
       { merchantId, deletedAt: null },
       { session: this.#session },
@@ -2102,10 +2086,7 @@ Create `src/modules/orders/infrastructure/mongo-order-audit-log.ts`:
 ```typescript
 import type { ClientSession, Collection, Db } from 'mongodb';
 
-import type {
-  AuditLog,
-  OrderAuditEvent,
-} from '@/modules/orders/domain/ports';
+import type { AuditLog, OrderAuditEvent } from '@/modules/orders/domain/ports';
 
 type OrderAuditDocument = {
   action: OrderAuditEvent['action'];
@@ -2231,18 +2212,24 @@ import type { Db } from 'mongodb';
 
 export async function ensureOrderIndexes(database: Db): Promise<void> {
   await Promise.all([
-    database.collection('orders').createIndex(
-      { merchantId: 1, createdAt: -1 },
-      { name: 'merchantId_createdAt' },
-    ),
-    database.collection('orders').createIndex(
-      { merchantId: 1, dueDate: 1 },
-      { name: 'merchantId_dueDate' },
-    ),
-    database.collection('orders').createIndex(
-      { merchantId: 1, deletedAt: 1 },
-      { name: 'merchantId_deletedAt' },
-    ),
+    database
+      .collection('orders')
+      .createIndex(
+        { merchantId: 1, createdAt: -1 },
+        { name: 'merchantId_createdAt' },
+      ),
+    database
+      .collection('orders')
+      .createIndex(
+        { merchantId: 1, dueDate: 1 },
+        { name: 'merchantId_dueDate' },
+      ),
+    database
+      .collection('orders')
+      .createIndex(
+        { merchantId: 1, deletedAt: 1 },
+        { name: 'merchantId_deletedAt' },
+      ),
   ]);
 }
 ```
@@ -2267,6 +2254,7 @@ git commit -m "feat: add orders MongoDB infrastructure adapters"
 ## Task 12: Orders — create-orders-module factory
 
 **Files:**
+
 - Create: `src/modules/orders/infrastructure/create-orders-module.ts`
 
 - [ ] **Step 1: Create the factory**
@@ -2324,6 +2312,7 @@ git commit -m "feat: add orders module factory"
 ## Task 13: Orders — integration tests against MongoDB
 
 **Files:**
+
 - Create: `tests/integration/orders/infrastructure.test.ts`
 
 - [ ] **Step 1: Write integration tests**
@@ -2537,10 +2526,7 @@ describe('orders infrastructure adapters', () => {
       changedFields: [],
     });
 
-    const docs = await database
-      .collection('orders_audit_log')
-      .find()
-      .toArray();
+    const docs = await database.collection('orders_audit_log').find().toArray();
 
     expect(docs).toHaveLength(1);
     expect(docs[0]?.action).toBe('orders.create.succeeded');
@@ -2566,6 +2552,7 @@ git commit -m "test: add orders infrastructure integration tests"
 ## Task 14: Orders — composition error mapping
 
 **Files:**
+
 - Create: `src/app/composition/orders-api-errors.ts`
 
 - [ ] **Step 1: Create the orders API error mapper**
@@ -2573,10 +2560,7 @@ git commit -m "test: add orders infrastructure integration tests"
 Create `src/app/composition/orders-api-errors.ts`:
 
 ```typescript
-import {
-  OrderError,
-  type OrderErrorCode,
-} from '@/modules/orders/public';
+import { OrderError, type OrderErrorCode } from '@/modules/orders/public';
 import { errorResponse, mapErrorResponse } from '@/shared/http/api-response';
 import type { NextResponse } from 'next/server';
 
@@ -2633,6 +2617,7 @@ git commit -m "feat: add orders API error mapping"
 ## Task 15: Orders — HTTP route handlers (collection)
 
 **Files:**
+
 - Create: `src/app/api/v1/orders/route.ts`
 
 - [ ] **Step 1: Create the list + create route handler**
@@ -2648,19 +2633,14 @@ import {
   createOrderInputSchema,
   listOrdersQuerySchema,
 } from '@/modules/orders/public';
-import {
-  dataResponse,
-  InvalidJsonError,
-} from '@/shared/http/api-response';
+import { dataResponse, InvalidJsonError } from '@/shared/http/api-response';
 import { mapApiErrorResponse } from '@/app/composition/api-errors';
 import { mapOrdersApiErrorResponse } from '@/app/composition/orders-api-errors';
 import { createRequestContext } from '@/shared/http/request-context';
 import { loadEnvironment } from '@/shared/config/environment';
 import { assertSameOrigin } from '@/shared/http/same-origin';
 
-export async function GET(
-  request: NextRequest,
-): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const context = createRequestContext(request);
 
   try {
@@ -2691,9 +2671,7 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const context = createRequestContext(request);
 
   try {
@@ -2765,10 +2743,7 @@ This way `IdentityError` flows to `mapApiErrorResponse`, which handles it, while
 Apply this update to `src/app/composition/orders-api-errors.ts`:
 
 ```typescript
-import {
-  OrderError,
-  type OrderErrorCode,
-} from '@/modules/orders/public';
+import { OrderError, type OrderErrorCode } from '@/modules/orders/public';
 import { errorResponse, mapErrorResponse } from '@/shared/http/api-response';
 import { mapApiErrorResponse } from '@/app/composition/api-errors';
 import type { NextResponse } from 'next/server';
@@ -2822,18 +2797,13 @@ import {
   createOrderInputSchema,
   listOrdersQuerySchema,
 } from '@/modules/orders/public';
-import {
-  dataResponse,
-  InvalidJsonError,
-} from '@/shared/http/api-response';
+import { dataResponse, InvalidJsonError } from '@/shared/http/api-response';
 import { mapOrdersApiErrorResponse } from '@/app/composition/orders-api-errors';
 import { createRequestContext } from '@/shared/http/request-context';
 import { loadEnvironment } from '@/shared/config/environment';
 import { assertSameOrigin } from '@/shared/http/same-origin';
 
-export async function GET(
-  request: NextRequest,
-): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const context = createRequestContext(request);
 
   try {
@@ -2855,9 +2825,7 @@ export async function GET(
   }
 }
 
-export async function POST(
-  request: NextRequest,
-): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   const context = createRequestContext(request);
 
   try {
@@ -2908,6 +2876,7 @@ git commit -m "feat: add orders collection route handlers"
 ## Task 16: Orders — HTTP route handlers (detail)
 
 **Files:**
+
 - Create: `src/app/api/v1/orders/[id]/route.ts`
 
 - [ ] **Step 1: Create the detail route handler**
@@ -3030,6 +2999,7 @@ git commit -m "feat: add orders detail route handlers"
 ## Task 17: Orders — API contract tests
 
 **Files:**
+
 - Create: `tests/api/orders.test.ts`
 
 - [ ] **Step 1: Write API contract tests**
@@ -3118,12 +3088,22 @@ Write the full `tests/api/orders.test.ts`:
 ```typescript
 import { randomUUID } from 'node:crypto';
 
-import { afterAll, beforeAll, beforeEach, describe, expect, test } from 'vitest';
+import {
+  afterAll,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from 'vitest';
 import { MongoClient, type Db } from 'mongodb';
 import { NextRequest } from 'next/server';
 
 import { POST as signUp } from '@/app/api/v1/auth/sign-up/route';
-import { GET as listOrders, POST as createOrder } from '@/app/api/v1/orders/route';
+import {
+  GET as listOrders,
+  POST as createOrder,
+} from '@/app/api/v1/orders/route';
 import {
   GET as getOrder,
   PATCH as updateOrder,
@@ -3212,7 +3192,7 @@ describe('orders API', () => {
     expect(body.data.order.status).toBe('pending');
   });
 
-  test('GET /api/v1/orders returns the merchant\'s active orders', async () => {
+  test("GET /api/v1/orders returns the merchant's active orders", async () => {
     await createTestOrder();
 
     const response = await listOrders(
