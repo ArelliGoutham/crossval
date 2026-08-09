@@ -49,7 +49,7 @@ test('assignment scenario: $1000 order, $400 + $600 payments reaches paid', asyn
 
   // Verify order total and status
   await expect(page.locator('.status--pending')).toBeVisible();
-  await expect(page.getByText('$1000.00')).toBeVisible();
+  await expect(page.getByText('$1000.00').first()).toBeVisible();
 
   // Record $400 payment (40000 cents)
   await page.getByLabel('Amount (in cents)').fill('40000');
@@ -68,7 +68,7 @@ test('assignment scenario: $1000 order, $400 + $600 payments reaches paid', asyn
 
   // Status should be paid, amount due $0.00
   await expect(page.locator('.status--paid')).toBeVisible();
-  await expect(page.getByText('$0.00')).toBeVisible();
+  await expect(page.getByText('$0.00').first()).toBeVisible();
 
   // Payment form should be hidden when balance is zero
   await expect(page.getByLabel('Amount (in cents)')).not.toBeVisible();
@@ -103,7 +103,7 @@ test('over-payment is rejected with actionable error message', async ({
 
   // Should show over-payment error with maximum allowed amount
   await expect(page.getByText(/exceeds remaining balance/i)).toBeVisible();
-  await expect(page.getByText(/\$100\.00/)).toBeVisible();
+  await expect(page.getByText(/\$100\.00/).first()).toBeVisible();
 
   // Verify no payment was recorded
   await expect(page.getByText('No payments recorded yet.')).toBeVisible();
