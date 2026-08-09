@@ -10,19 +10,6 @@ jobs:
   quality-gate:
     runs-on: ubuntu-latest
 
-    services:
-      mongo:
-        image: mongo:7
-        ports:
-          - 27018:27017
-        env:
-          MONGO_INITDB_REPLICA_SET_NAME: rs0
-        options: >-
-          --health-cmd "mongosh --eval 'db.runCommand({ping:1}).ok' --quiet"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 10
-
     env:
       MONGODB_URI: mongodb://localhost:27018/?replicaSet=rs0
       MONGODB_DB_NAME: crossval_ci
@@ -40,50 +27,35 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
+      - name: Start MongoDB replica set
+        run: |
+          docker run -d --name mongo \
+            -p 27018:27017 \
+            mongo:7 \
+            mongod --replSet rs0 --bind_ip_all
+
+          sleep 3
+
+          docker exec mongo mongosh --quiet --eval '
+            rs.initiate({
+              _id: "rs0",
+              members: [{ _id: 0, host: "localhost:27017" }]
+            })
+          '
+
+          for i in $(seq 1 30); do
+            if docker exec mongo mongosh --quiet --eval 'rs.status().ok' 2>/dev/null | grep -q '1'; then
+              echo "MongoDB replica set is ready"
+              break
+            fi
+            echo "Waiting for MongoDB replica set... ($i/30)"
+            sleep 2
+          done
+
+          docker exec mongo mongosh --quiet --eval 'rs.status().ok' || exit 1
+
       - name: Install dependencies
         run: npm ci
-
-      - name: Initialize and wait for MongoDB replica set
-        run: |
-          node -e "
-            const { MongoClient } = require('mongodb');
-            const uri = 'mongodb://localhost:27018/?replicaSet=rs0';
-            const directUri = 'mongodb://localhost:27018';
-
-            (async () => {
-              const client = new MongoClient(directUri, { directConnection: true });
-              try {
-                await client.connect();
-                const admin = client.db('admin');
-                try {
-                  await admin.command({ replSetInitiate: { _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] } });
-                  console.log('Replica set initiated');
-                } catch (e) {
-                  console.log('Replica set may already be initiated:', e.message);
-                }
-              } finally {
-                await client.close();
-              }
-
-              for (let i = 0; i < 30; i++) {
-                try {
-                  const rsClient = new MongoClient(uri, { directConnection: true, serverSelectionTimeoutMS: 2000 });
-                  await rsClient.connect();
-                  const result = await rsClient.db('admin').command({ replSetGetStatus: 1 });
-                  await rsClient.close();
-                  if (result.ok === 1) {
-                    console.log('MongoDB replica set is ready');
-                    process.exit(0);
-                  }
-                } catch (e) {
-                  console.log('Waiting... (' + (i + 1) + '/30)');
-                }
-                await new Promise(r => setTimeout(r, 2000));
-              }
-              console.error('MongoDB replica set did not become ready');
-              process.exit(1);
-            })();
-          "
 
       - name: Format check
         run: npm run format:check
