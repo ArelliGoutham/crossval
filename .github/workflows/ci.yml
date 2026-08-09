@@ -40,35 +40,50 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Initialize MongoDB replica set
-        run: |
-          sleep 5
-          mongosh --port 27018 --quiet --eval '
-            try {
-              rs.initiate({
-                _id: "rs0",
-                members: [{ _id: 0, host: "localhost:27017" }]
-              });
-            } catch (e) {
-              print("Replica set may already be initiated: " + e.message);
-            }
-          ' || true
-
-      - name: Wait for MongoDB replica set
-        run: |
-          for i in $(seq 1 30); do
-            if mongosh --port 27018 --quiet --eval 'rs.status().ok' 2>/dev/null | grep -q '1'; then
-              echo "MongoDB replica set is ready"
-              exit 0
-            fi
-            echo "Waiting for MongoDB replica set... ($i/30)"
-            sleep 2
-          done
-          echo "MongoDB replica set did not become ready"
-          exit 1
-
       - name: Install dependencies
         run: npm ci
+
+      - name: Initialize and wait for MongoDB replica set
+        run: |
+          node -e "
+            const { MongoClient } = require('mongodb');
+            const uri = 'mongodb://localhost:27018/?replicaSet=rs0';
+            const directUri = 'mongodb://localhost:27018';
+
+            (async () => {
+              const client = new MongoClient(directUri, { directConnection: true });
+              try {
+                await client.connect();
+                const admin = client.db('admin');
+                try {
+                  await admin.command({ replSetInitiate: { _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] } });
+                  console.log('Replica set initiated');
+                } catch (e) {
+                  console.log('Replica set may already be initiated:', e.message);
+                }
+              } finally {
+                await client.close();
+              }
+
+              for (let i = 0; i < 30; i++) {
+                try {
+                  const rsClient = new MongoClient(uri, { directConnection: true, serverSelectionTimeoutMS: 2000 });
+                  await rsClient.connect();
+                  const result = await rsClient.db('admin').command({ replSetGetStatus: 1 });
+                  await rsClient.close();
+                  if (result.ok === 1) {
+                    console.log('MongoDB replica set is ready');
+                    process.exit(0);
+                  }
+                } catch (e) {
+                  console.log('Waiting... (' + (i + 1) + '/30)');
+                }
+                await new Promise(r => setTimeout(r, 2000));
+              }
+              console.error('MongoDB replica set did not become ready');
+              process.exit(1);
+            })();
+          "
 
       - name: Format check
         run: npm run format:check
