@@ -1,4 +1,4 @@
-import type { ClientSession, Db, MongoClient } from 'mongodb';
+import type { Db, MongoClient } from 'mongodb';
 
 import type {
   PaymentTransaction,

@@ -15,6 +15,7 @@ import { computeRequestHash } from '@/modules/payments/domain/request-hash';
 import type { AuthenticatedMerchant } from '@/modules/identity/public';
 import { evaluateSettlement } from '@/modules/order-status/public';
 import type {
+  PaymentListItem,
   PaymentResult,
   RecordPaymentOutcome,
   RecordPaymentUseCase,
@@ -58,7 +59,7 @@ export class PaymentService
     const requestHash = computeRequestHash(validatedInput);
     const now = this.#clock.now();
 
-    return this.#transactions.run(async (tx) => {
+    const outcome = await this.#transactions.run(async (tx) => {
       const claimResult = await tx.claimIdempotency(
         {
           merchantId: merchant.merchantId,
@@ -75,23 +76,32 @@ export class PaymentService
           httpStatus: number;
         };
         return {
-          result: stored.result,
-          replayed: true,
-          httpStatus: 200,
+          kind: 'replay' as const,
+          result: {
+            result: stored.result,
+            replayed: true,
+            httpStatus: 200,
+          },
         };
       }
 
       if (claimResult.status === 'conflict') {
-        throw new PaymentError(
-          'idempotency_key_reused',
-          'Idempotency key was used with a different request body.',
-        );
+        return {
+          kind: 'error' as const,
+          error: new PaymentError(
+            'idempotency_key_reused',
+            'Idempotency key was used with a different request body.',
+          ),
+        };
       }
 
       const snapshot = await tx.getOrderSnapshot(merchant.merchantId, orderId);
 
       if (snapshot === null) {
-        throw new PaymentError('order_not_found', 'Order not found.');
+        return {
+          kind: 'error' as const,
+          error: new PaymentError('order_not_found', 'Order not found.'),
+        };
       }
 
       const statusBefore = evaluateSettlement({
@@ -108,14 +118,6 @@ export class PaymentService
       );
 
       if (!reserveResult.succeeded) {
-        const overpayError = new PaymentError(
-          'overpayment',
-          'Payment exceeds the remaining balance.',
-          {
-            maximumAllowedAmountMinor: reserveResult.maximumAllowedAmountMinor,
-          },
-        );
-
         const auditEvent: PaymentAuditEvent = {
           action: 'payments.record.rejected',
           occurredAt: now,
@@ -146,7 +148,17 @@ export class PaymentService
           now,
         );
 
-        throw overpayError;
+        return {
+          kind: 'error' as const,
+          error: new PaymentError(
+            'overpayment',
+            'Payment exceeds the remaining balance.',
+            {
+              maximumAllowedAmountMinor:
+                reserveResult.maximumAllowedAmountMinor,
+            },
+          ),
+        };
       }
 
       const paymentId = this.#ids.generate();
@@ -206,19 +218,28 @@ export class PaymentService
         now,
       );
 
-      return { result, replayed: false, httpStatus: 201 };
+      return {
+        kind: 'success' as const,
+        result: { result, replayed: false, httpStatus: 201 },
+      };
     });
+
+    if (outcome.kind === 'error') {
+      throw outcome.error;
+    }
+
+    return outcome.result;
   }
 
   async listPayments(
     merchant: AuthenticatedMerchant,
     orderId: string,
-  ): Promise<readonly PaymentResult[]> {
+  ): Promise<readonly PaymentListItem[]> {
     const payments = await this.#payments.listByOrderId(
       merchant.merchantId,
       orderId,
     );
-    return payments.map(toPaymentResult);
+    return payments.map(toPaymentListItem);
   }
 
   async hasPayments(merchantId: string, orderId: string): Promise<boolean> {
@@ -227,16 +248,14 @@ export class PaymentService
   }
 }
 
-function toPaymentResult(payment: StoredPayment): PaymentResult {
+function toPaymentListItem(payment: StoredPayment): PaymentListItem {
   return {
     id: payment.id,
     orderId: payment.orderId,
     amountMinor: payment.amountMinor,
     paymentDate: payment.paymentDate,
     note: payment.note,
-    statusBefore: 'pending',
-    statusAfter: 'pending',
-    amountDueMinorAfter: 0,
+    createdBy: payment.createdBy,
     createdAt: payment.createdAt,
   };
 }

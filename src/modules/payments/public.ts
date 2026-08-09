@@ -10,6 +10,7 @@ export {
 export type {
   HasPaymentsUseCase,
   ListPaymentsUseCase,
+  PaymentListItem,
   PaymentResult,
   RecordPaymentOutcome,
   RecordPaymentUseCase,

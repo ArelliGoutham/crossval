@@ -38,6 +38,16 @@ export interface PaymentResult {
   readonly createdAt: Date;
 }
 
+export interface PaymentListItem {
+  readonly id: string;
+  readonly orderId: string;
+  readonly amountMinor: number;
+  readonly paymentDate: string;
+  readonly note: string | null;
+  readonly createdBy: string;
+  readonly createdAt: Date;
+}
+
 export interface IdempotencyRecord {
   readonly merchantId: string;
   readonly operation: string;
@@ -68,7 +78,7 @@ export interface ListPaymentsUseCase {
   listPayments(
     merchant: AuthenticatedMerchant,
     orderId: string,
-  ): Promise<readonly PaymentResult[]>;
+  ): Promise<readonly PaymentListItem[]>;
 }
 
 export interface HasPaymentsUseCase {

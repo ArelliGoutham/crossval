@@ -1,7 +1,6 @@
 import { describe, expect, test } from 'vitest';
 
 import { PaymentService } from '@/modules/payments/application/payment-service';
-import { PaymentError } from '@/modules/payments/domain/errors';
 import {
   FixedClock,
   InMemoryPaymentRepository,
