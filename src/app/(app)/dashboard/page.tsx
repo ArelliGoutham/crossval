@@ -6,6 +6,7 @@ import { dashboardFilterSchema } from '@/modules/dashboard/domain/schemas';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { CreateOrderForm } from '@/components/dashboard/create-order-form';
+import { CreateOrderToggle } from '@/components/dashboard/create-order-toggle';
 
 interface DashboardPageProperties {
   searchParams: Promise<{ status?: string }>;
@@ -44,6 +45,7 @@ export default async function DashboardPage({
     <main className="app-main">
       <div className="dash-header">
         <h1 className="dash-title">Orders</h1>
+        <CreateOrderToggle />
       </div>
 
       <div className="filters">
