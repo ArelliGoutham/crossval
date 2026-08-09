@@ -5,7 +5,6 @@ import { composeDashboardService } from '@/modules/dashboard/public';
 import { dashboardFilterSchema } from '@/modules/dashboard/domain/schemas';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { CreateOrderForm } from '@/components/dashboard/create-order-form';
 import { CreateOrderToggle } from '@/components/dashboard/create-order-toggle';
 
 interface DashboardPageProperties {
@@ -67,10 +66,9 @@ export default async function DashboardPage({
           <div className="empty">
             <div className="empty__icon">&#128230;</div>
             <p className="empty__text">
-              No orders found. Create one to get started.
+              No orders found. Click &ldquo;New Order&rdquo; to create one.
             </p>
           </div>
-          <CreateOrderForm />
         </div>
       ) : (
         <div className="table-wrap">
