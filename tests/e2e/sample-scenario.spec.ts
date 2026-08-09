@@ -19,11 +19,19 @@ async function signUp(page: Page, email: string): Promise<void> {
   await expect(page).toHaveURL(/\/dashboard/);
 }
 
+async function openCreateOrderModal(page: Page): Promise<void> {
+  await page.getByRole('button', { name: '+ New Order' }).click();
+  await expect(page.getByRole('dialog')).toBeVisible();
+}
+
 test('assignment scenario: $1000 order, $400 + $600 payments reaches paid', async ({
   page,
 }) => {
   const email = uniqueEmail();
   await signUp(page, email);
+
+  // Open the create order modal
+  await openCreateOrderModal(page);
 
   // Create a $1,000 order: 2 x $5.00 = 2 x 50000 cents = 100000 cents
   await page.getByLabel('Customer').fill('Acme Corp');
@@ -32,16 +40,16 @@ test('assignment scenario: $1000 order, $400 + $600 payments reaches paid', asyn
   dueDate.setDate(dueDate.getDate() + 7);
   await page.getByLabel('Due Date').fill(dueDate.toISOString().slice(0, 10));
 
-  const lineItems = page.locator('fieldset > div');
+  const lineItems = page.locator('.line-item-row');
   await lineItems.first().locator('input').nth(0).fill('Widget');
   await lineItems.first().locator('input').nth(1).fill('2');
   await lineItems.first().locator('input').nth(2).fill('50000');
 
   await page.getByRole('button', { name: 'Create Order' }).click();
 
-  // Wait for the order to appear in the table
+  // Wait for the modal to close and order to appear in the table
   await expect(page.getByRole('link', { name: 'Acme Corp' })).toBeVisible();
-  await expect(page.locator('td.status--pending')).toBeVisible();
+  await expect(page.locator('td .badge--pending')).toBeVisible();
 
   // Navigate to order detail
   await page.getByRole('link', { name: 'Acme Corp' }).click();
@@ -80,12 +88,15 @@ test('over-payment is rejected with actionable error message', async ({
   const email = uniqueEmail();
   await signUp(page, email);
 
+  // Open the create order modal
+  await openCreateOrderModal(page);
+
   // Create a $100 order (1 x 10000 cents)
   await page.getByLabel('Customer').fill('Test Corp');
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 7);
   await page.getByLabel('Due Date').fill(dueDate.toISOString().slice(0, 10));
-  const lineItems = page.locator('fieldset > div');
+  const lineItems = page.locator('.line-item-row');
   await lineItems.first().locator('input').nth(0).fill('Item');
   await lineItems.first().locator('input').nth(1).fill('1');
   await lineItems.first().locator('input').nth(2).fill('10000');
