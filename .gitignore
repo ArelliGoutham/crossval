@@ -8,3 +8,5 @@ test-results/
 blob-report/
 playwright/.cache/
 *.tsbuildinfo
+.vercel
+.env*

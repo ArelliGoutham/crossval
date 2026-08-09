@@ -21,8 +21,8 @@ A merchant-facing web application for creating orders with line items, recording
 
 ## Live deployment
 
-- **App URL:** [Deploy to Vercel and add URL here]
-- **Repository:** https://github.com/ArelliGoutham/CrossVal
+- **App URL:** https://crossval.vercel.app
+- **Repository:** https://github.com/ArelliGoutham/crossval
 
 ## Local setup
 
