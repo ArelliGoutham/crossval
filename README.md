@@ -24,6 +24,30 @@ A merchant-facing web application for creating orders with line items, recording
 - **App URL:** https://crossval.vercel.app
 - **Repository:** https://github.com/ArelliGoutham/crossval
 
+### Demo credentials
+
+The production database is seeded with a demo account and sample orders across all status types:
+
+- **Email:** `demo@crossval.app`
+- **Password:** `demo-password-12`
+
+Logged-in demo orders:
+
+| Customer           | Status         | Total     | Paid    | Due       |
+| ------------------ | -------------- | --------- | ------- | --------- |
+| Acme Industries    | pending        | $1,500.00 | $0.00   | $1,500.00 |
+| Globex Corporation | partially paid | $1,000.00 | $500.00 | $500.00   |
+| Initech LLC        | paid           | $750.00   | $750.00 | $0.00     |
+| Umbrella Corp      | overdue        | $2,000.00 | $0.00   | $2,000.00 |
+| Stark Industries   | overdue        | $1,000.00 | $300.00 | $700.00   |
+| Wayne Enterprises  | pending        | $250.00   | $0.00   | $250.00   |
+
+To re-seed locally:
+
+```bash
+npm run seed
+```
+
 ## Local setup
 
 Prerequisites: Node.js 20.9 or later, npm, and Docker Compose.
